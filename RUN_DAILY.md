@@ -27,6 +27,10 @@ Instagram skills live in `skills/ig-reel`, `ig-human`, `ig-caption`. Read their 
 - Every number, name and date in the video must appear in an opened source. If a site is blocked, find another reputable page or mirror.
 - If the core claims cannot be verified, drop the topic and take the next one (up to 3 attempts). Never invent or "round up" a statistic.
 - Keep a list of the sources you actually opened.
+- Copy the source's own wording for the key terms (for example "load balancing algorithm", "health check"). The video must use those exact
+  terms. Never swap in a look-alike word ("rules", "tricks", "modes") for a technical term, and never put different kinds of things in one numbered list
+  (an algorithm and a health check are not "two algorithms").
+- Only state a count ("two common algorithms") if a source states that count. Otherwise say "a common one" or "two popular ones, among others" and mean it.
 
 ## 3. Write the script (use ig-reel) with a mandatory hook gate
 A video is only worth delivering if people stay past the first three seconds. The hook is judged by `hookscore.py` and must pass before anything is rendered.
@@ -67,6 +71,18 @@ A video is only worth delivering if people stay past the first three seconds. Th
 Note: `hookscore.py` is a heuristic. It reliably catches weak, slow or vague hooks but cannot promise views. Use it as a floor, not a guarantee,
 and never trade accuracy for a higher score.
 
+## 3b. Facts file and consistency gate (mandatory, before any rendering)
+Write `specs/dayNN_facts.json` from the sources you opened (schema at the top of `check_spec.py`):
+- `terms`: the source term for each key idea plus the look-alike words you must never use (`never_say`).
+- `counts`: the size of any set the video mentions, as stated by a source.
+- `illustrative_numbers`: numbers you made up for a worked example (for instance "4 servers"). Each must be labelled as an example on screen.
+- `claims`: one entry for EVERY factual sentence in the script and every factual on-screen label: what the video says, the source URL, and a quote copied
+  from the page you opened. If you cannot find a quote, cut or rewrite the sentence.
+Worked examples must be correct and consistent: decide the example once (how many servers, which visitor goes where), walk through it step by step
+in writing, and reuse exactly the same example in every scene and in the script.
+Then run `python3 check_spec.py specs/dayNN_slug.py --facts specs/dayNN_facts.json`. Fix every FAIL (wrong term, unsourced number or count,
+different example numbers in different scenes, script/scene mismatch). WARN lines (vague short labels, hook wording) must each be fixed or consciously accepted in the report.
+
 ## 4. Build the video
 1. Copy `specs/_example_generic_scenes.py` to `specs/dayNN_<slug>.py` (NN = day number). Look at `specs/day04_database_index.py` for a
    richer example. Keep `"captions": False` and `"pace_wps": 3.2`.
@@ -81,6 +97,26 @@ and never trade accuracy for a higher score.
 7. Check: `ffprobe` duration must be 30 to 60 seconds. Render preview frames of every scene (for example with
    `reel.load_spec` and `reel.frame(t)` in a short script) and look at them. Fix any overflow, overlap or cut-off text.
    Read every on-screen string aloud as a stranger would; rewrite anything that raises "what does that mean?".
+8. Check the rendered file itself, not only the spec:
+   `python3 check_spec.py specs/dayNN_slug.py --facts specs/dayNN_facts.json --video out/dayNN_slug_silent.mp4 --sheet out/dayNN_sheet.png --report out/dayNN_check.md`
+   It re-checks the script and every on-screen string, then inspects the video: duration, content outside the Instagram safe zone, and dead or blank
+   screens (FAIL at 0.5 s or more, WARN at 0.2 s or more). Fix and re-render until there is no FAIL.
+
+## 4b. Reviewer pass (mandatory, independent)
+The person who wrote the video must not be the only one to check it. Start a fresh reviewer with the Agent tool (general-purpose). Give it ONLY:
+the facts file, `out/dayNN_check.md` (which lists the script next to every on-screen string, scene by scene), and `out/dayNN_sheet.png` (frames of every scene).
+Do not give it your drafting notes. Ask it to:
+1. For every spoken sentence, find the claim and source quote that supports it. List any sentence with no support.
+2. For every on-screen string, confirm it is true, uses the source term, and says the same thing as the spoken line of its scene.
+3. Walk through every worked example step by step (for instance "visitor 4 with 3 servers goes to server 1") and write the result. Confirm the pictures
+   in the contact sheet show the same example, and that counts match ("3 servers" shows exactly three).
+4. Check technical accuracy against general knowledge and the quotes: is anything oversimplified until it is wrong, or presented as universal when it is only common?
+5. Reply PASS, or a numbered list of problems with the exact fix for each.
+Apply every fix, re-run `check_spec.py`, re-render, and send it back to the reviewer. Up to 3 rounds. If the Agent tool is not available, do the same review yourself as a
+separate written pass (a table of sentence, quote, verdict) and say in the summary that the review was not independent.
+**Stop rule:** if problems remain after 3 rounds, or a fact cannot be supported by a quote, do NOT deliver a video. Send one message that lists the open problems and
+the files so far, so the owner can decide. A late correct video beats an on-time wrong one.
+
 
 ## 5. Caption
 Run ig-caption. First line = the hook (visible before "more"). Two or three short lines of value, then "Follow for one tech topic a day."
@@ -94,8 +130,9 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_script.txt`: the voiceover script exactly as it should be pasted into ElevenLabs, one paragraph per line
 - `out/dayNN_caption.txt`
 - `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked)
-- `out/dayNN_sources.md`: each source as a link with what it supports
-Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), how many hook rounds it took, the script, the caption, the sources, and any doubts or unverified points.
+- `out/dayNN_sources.md`: each source as a link with what it supports, plus the claim table (what the video says, source link, quote)
+- `out/dayNN_check.md`: the checker report and the reviewer's verdict
+Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), how many hook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
 The summary must be readable on its own.
 
 ## 7. Update the log
@@ -106,7 +143,9 @@ If neither works, say so in the summary and list the row to add by hand.
 ## Quality gates (do not deliver if any fails)
 - Hook: final spoken hook and on-screen hook score STRONG (70+) on hookscore.py, or the summary starts with "HOOK BELOW TARGET" after 5 rounds.
 - Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
-- Every fact traced to an opened source.
+- Every fact traced to an opened source, with a quote in the claim table. Key terms exactly as the sources write them; no look-alike words.
+- `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
+- One consistent worked example across all scenes; counts in text match what the pictures show.
 - Duration 30-60 s; script 100-190 words; ends with the closing line.
 - All on-screen text complete and fitting on screen; nothing in the top 230 px or bottom 480 px of the frame.
 - Topic not already in the log. Brand text says "Tech in a Bite", never a length like "in 25 seconds".

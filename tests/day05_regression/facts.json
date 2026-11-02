@@ -1,0 +1,6 @@
+{
+  "terms": [{"use": "load balancing algorithm", "never_say": ["rule", "rules"]}],
+  "counts": {"algorithm": 2},
+  "illustrative_numbers": [],
+  "claims": []
+}

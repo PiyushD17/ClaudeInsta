@@ -46,3 +46,10 @@ Everything written in a video must be clean, complete and understandable on its 
 - Titles must fit on screen (they wrap to two lines automatically); shorten wording instead of cutting words off.
 - Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?", rewrite it.
 - Scripts tell a story (hook question, problem, fix, catch, takeaway), not a list of facts.
+
+## Accuracy rules (set by the owner after the Day 05 mistakes)
+- Use the exact technical terms the sources use. Never replace a term with a look-alike ("3 rules" for algorithms is wrong).
+- Numbered lists hold one kind of thing, and any count must be stated by a source.
+- One worked example, identical in every scene and in the script (same number of servers, same visitors).
+- Every factual sentence needs a source quote in `specs/dayNN_facts.json`; run `python3 check_spec.py` (with `--video`) and get an independent reviewer PASS before delivering.
+- If a check cannot be satisfied, deliver a list of problems instead of a video.
