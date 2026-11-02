@@ -28,16 +28,44 @@ Instagram skills live in `skills/ig-reel`, `ig-human`, `ig-caption`. Read their 
 - If the core claims cannot be verified, drop the topic and take the next one (up to 3 attempts). Never invent or "round up" a statistic.
 - Keep a list of the sources you actually opened.
 
-## 3. Write the script (use ig-reel)
-- Follow the ig-reel loop: three hooks from different formulas, score with `hookscore.py`, pick the best (aim for 50+), write the
-  script, check timing with `beats.py script.txt --target <seconds> --wpm 190`, then run it through ig-human.
-- Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule is stricter:
-  every on-screen string must be a clean, complete, self-explaining sentence or label. Never clipped fragments.
-- Shape: hook question or surprising claim, the problem, the fix, the catch, one takeaway, then exactly:
-  "Follow for one tech topic a day."
+## 3. Write the script (use ig-reel) with a mandatory hook gate
+A video is only worth delivering if people stay past the first three seconds. The hook is judged by `hookscore.py` and must pass before anything is rendered.
+
+**Hook gate (do not skip, do not shortcut):**
+1. Read `skills/ig-reel/hooks.json` (26 formulas). Write at least 6 candidate opening lines, each from a DIFFERENT formula.
+   Each must be 5 to 12 words (spoken in about 3 seconds), contain something concrete (a number, a named thing or a clear stake from
+   the verified sources), put the payload at the front, speak straight to the viewer, and be TRUE. No fabricated numbers, no fake
+   "nobody knows" claims you cannot defend, no promises the video does not deliver.
+2. Put the candidates in `out/dayNN_hooks.txt` (one per line) and run `python3 skills/ig-reel/hookscore.py out/dayNN_hooks.txt`.
+3. Target: the best hook must be STRONG (overall 70 or more, every component 55 or more, no flags). The script exits with status 0 only when
+   the best hook scores 70 or more.
+4. If the best hook is below 70: do not render. Read the weakest component for each candidate, write a NEW batch of 6 using other formulas or a
+   sharper angle (more specific number, clearer stake, payload first), and score again. Repeat up to 5 rounds. If three rounds in a row stay
+   below 55, rethink the angle of the whole video, or pick a different topic.
+5. If after 5 rounds the best is still below 70, deliver the best one anyway but start the summary with "HOOK BELOW TARGET" and show
+   the scores, so the owner knows to check it.
+6. After the script is written, score the FINAL first spoken sentence once more, and the on-screen hook text of the first scene
+   (it must say the same thing as the spoken hook, as a complete thought). If either drops below 70, fix it and re-render. Never deliver a
+   video whose final hook differs from the one that passed.
+
+**Engagement gate (also mandatory):**
+- Run `python3 skills/ig-reel/beats.py script.txt --target <seconds> --wpm 190` and fix every flag it raises (hook too long, a beat that drags,
+  a stretch with nothing concrete, no loop). Re-run until clean.
+- The line before the closing call to action must echo a key word or idea from the hook, so the video loops cleanly.
+- Every scene must show something changing at least every 3 to 4 seconds (the scene types already animate in steps; use them, do not leave a
+  static card on screen).
+- Do not pad. Cut any sentence that does not move the explanation forward.
+
+**Then write the script** on the winning hook: plain spoken language, contractions, short lines, run it through ig-human.
+- Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule is stricter: every on-screen
+  string must be a clean, complete, self-explaining sentence or label. Never clipped fragments.
+- Shape: hook, the problem, the fix, the catch, one takeaway, then exactly: "Follow for one tech topic a day."
 - Length: 100 to 190 words (about 30 to 60 seconds at 3.2 words/second) and at most about 950 characters, because the voiceover
-  uses limited free credits. Short, spoken sentences. No greeting, no "in this video".
+  uses limited free credits. No greeting, no "in this video".
 - Explain one idea only. Use a concrete example or analogy. Say what it costs or where it breaks, not only why it is great.
+
+Note: `hookscore.py` is a heuristic. It reliably catches weak, slow or vague hooks but cannot promise views. Use it as a floor, not a guarantee,
+and never trade accuracy for a higher score.
 
 ## 4. Build the video
 1. Copy `specs/_example_generic_scenes.py` to `specs/dayNN_<slug>.py` (NN = day number). Look at `specs/day04_database_index.py` for a
@@ -65,8 +93,9 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_<slug>_bgm.wav`
 - `out/dayNN_script.txt`: the voiceover script exactly as it should be pasted into ElevenLabs, one paragraph per line
 - `out/dayNN_caption.txt`
+- `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked)
 - `out/dayNN_sources.md`: each source as a link with what it supports
-Then send one SendUserMessage: topic, length in seconds, the script, the caption, the sources, and any doubts or unverified points.
+Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), how many hook rounds it took, the script, the caption, the sources, and any doubts or unverified points.
 The summary must be readable on its own.
 
 ## 7. Update the log
@@ -75,6 +104,8 @@ Also append the topic to the "Covered so far" line in memory (/areas/social-medi
 If neither works, say so in the summary and list the row to add by hand.
 
 ## Quality gates (do not deliver if any fails)
+- Hook: final spoken hook and on-screen hook score STRONG (70+) on hookscore.py, or the summary starts with "HOOK BELOW TARGET" after 5 rounds.
+- Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
 - Every fact traced to an opened source.
 - Duration 30-60 s; script 100-190 words; ends with the closing line.
 - All on-screen text complete and fitting on screen; nothing in the top 230 px or bottom 480 px of the frame.

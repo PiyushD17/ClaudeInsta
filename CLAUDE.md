@@ -19,6 +19,10 @@ When the user sends a voice recording later: measure it, retime the spec, then `
 - Length 30-60 seconds. No burned-in captions: the user adds subtitles in ElevenLabs (specs use "captions": False).
 - The final line is always the call to action: "Follow for one tech topic a day."
 
+## Hook quality is mandatory
+Every video's hook must score STRONG (70+) on `skills/ig-reel/hookscore.py` before rendering. If the first batch of hooks scores lower, write new hooks
+and score again (up to 5 rounds) instead of rendering a weak opening. See RUN_DAILY.md section 3. Engagement matters as much as accuracy.
+
 ## Style
 Dark background, amber and mint accents, Inter font (bundled in `fonts/`). Music is original and synthesised
 (no copyright issues); vary `bpm`, `seed` and `variant` (0-2) per video in the spec's `music` block.
