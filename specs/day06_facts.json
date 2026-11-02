@@ -1,0 +1,29 @@
+{
+  "terms": [
+    {"use": "context window", "never_say": ["memory limit", "memory size"]},
+    {"use": "tokens", "never_say": ["syllables"]},
+    {"use": "truncated or summarized", "never_say": ["deleted"]},
+    {"use": "context rot", "never_say": ["context decay"]},
+    {"use": "working memory", "never_say": []}
+  ],
+  "counts": {},
+  "illustrative_numbers": ["1,000", "1,500", "3,000"],
+  "claims": [
+    {"say": "Recall can drop (as more text is in the context).", "source": "https://platform.claude.com/docs/en/build-with-claude/context-windows", "quote": "As token count grows, accuracy and recall degrade, a phenomenon known as context rot."},
+    {"say": "A context window is the amount of text, in tokens, the model can consider at any one time.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "The context window (or \"context length\") of a large language model (LLM) is the amount of text, in tokens, that the model can consider or \"remember\" at any one time."},
+    {"say": "Think of it as working memory.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "An LLM's context window can be thought of as the equivalent of its working memory."},
+    {"say": "The context window works like the model's working memory (not its training data).", "source": "https://platform.claude.com/docs/en/build-with-claude/context-windows", "quote": "This is different from the large corpus of data the language model was trained on, and instead represents a \"working memory\" for the model."},
+    {"say": "It counts tokens, not words.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "In real-world terms, the context length of a language model is measured not in words, but in tokens."},
+    {"say": "A decent estimate is roughly 1.5 tokens per word.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "But for general purposes, a decent estimate would be roughly 1.5 tokens per word."},
+    {"say": "1,000 words is about 1,500 tokens (arithmetic on the 1.5 tokens per word estimate; labelled as an example estimate).", "source": "https://www.ibm.com/think/topics/context-window", "quote": "There is no fixed word-to-token \"exchange rate,\" ... But for general purposes, a decent estimate would be roughly 1.5 tokens per word."},
+    {"say": "Different models count tokens differently.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "different models or tokenizers ... might tokenize the same passage of writing differently."},
+    {"say": "When a chat exceeds the window, it must be truncated or summarized.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "When a prompt, conversation, document or code base exceeds an artificial intelligence model's context window, it must be truncated or summarized for the model to proceed."},
+    {"say": "The model can consider all of it when the text fits in the window.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "The context window ... is the amount of text, in tokens, that the model can consider or \"remember\" at any one time."},
+    {"say": "More isn't automatically better.", "source": "https://platform.claude.com/docs/en/build-with-claude/context-windows", "quote": "A larger context window allows the model to handle more complex and lengthy prompts, but more context isn't automatically better."},
+    {"say": "As token count grows, accuracy and recall degrade. That's context rot.", "source": "https://platform.claude.com/docs/en/build-with-claude/context-windows", "quote": "As token count grows, accuracy and recall degrade, a phenomenon known as context rot."},
+    {"say": "Double those 1,500 tokens to 3,000, and the model needs 4 times as much processing power (arithmetic on the quoted rule; example numbers).", "source": "https://www.ibm.com/think/topics/context-window", "quote": "Compute requirements scale quadratically with the length of a sequence: for instance, if the number of input tokens doubles, the model needs 4 times as much processing power to handle it."},
+    {"say": "Longer input often costs more computing.", "source": "https://www.ibm.com/think/topics/context-window", "quote": "increasing context length ... often entails increased computational power requirements—and therefore increased costs"},
+    {"say": "Curating what goes in matters as much as the space available.", "source": "https://platform.claude.com/docs/en/build-with-claude/context-windows", "quote": "This makes curating what's in context just as important as how much space is available."},
+    {"say": "Keep only what the answer needs (advice drawn from curating context).", "source": "https://platform.claude.com/docs/en/build-with-claude/context-windows", "quote": "This makes curating what's in context just as important as how much space is available."}
+  ]
+}

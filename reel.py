@@ -258,6 +258,10 @@ def sc_cta(d, u, a, sc):
     d.text((W / 2, 600), sc["big"], font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
     d.text((W / 2, 720), sc["sub"], font=MED(44), fill=A(MUTED, a * v), anchor="mm")
     c = ease(fade(u, 3.4, 4.0)) * a
+    if sc.get("no_follow"):
+        for i, ln in enumerate(wrap(d, sc["line"], BOLD(60), 880)):
+            d.text((W / 2, 930 + i * 80 + (1 - c) * 24), ln, font=BOLD(60), fill=A(TEXT, c), anchor="mm")
+        return
     d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70), fill=A(TEXT, c), anchor="mm")
     d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
 
@@ -276,7 +280,8 @@ def sc_bars(d, u, a, sc):
         d.rounded_rectangle([110, y + 40, 110 + bw, y + 120], radius=20, fill=A(it["color"], k))
         txt = it["value"] if "num" not in it else f"{int(it['num'] * g):,}" + it.get("unit", "")
         d.text((110, y + 160), txt, font=BOLD(54), fill=A(it["color"], k), anchor="lm")
-    d.text((W / 2, 520 + len(sc["items"]) * 270 + 20), sc.get("note", ""), font=REG(28), fill=A(MUTED, a), anchor="mm")
+    for i, ln in enumerate(wrap(d, sc.get("note", ""), REG(28), 900)):
+        d.text((W / 2, 520 + len(sc["items"]) * 270 + 20 + i * 40), ln, font=REG(28), fill=A(MUTED, a), anchor="mm")
 
 def sc_lane(d, u, a, sc):
     """requests queue up and are handled one at a time"""

@@ -1,0 +1,28 @@
+SPEC = {
+    "tag": "@TECHINABITE",
+    "pace_wps": 3.2,
+    "captions": False,
+    "music": {"bpm": 104, "seed": 17, "variant": 2},
+    "lines": [
+        "Stop pasting everything into your AI. Recall can drop.",
+        "A large language model has a context window: the amount of text, in tokens, it can consider at any one time.",
+        "Think of it as working memory. It counts tokens, not words.",
+        "A decent estimate is roughly 1.5 tokens per word, so 1,000 words is about 1,500 tokens.",
+        "When a chat exceeds the window, it must be truncated or summarized.",
+        "But more isn't automatically better. As token count grows, accuracy and recall degrade. That's context rot.",
+        "Longer input often costs more computing, too. Double those 1,500 tokens to 3,000, and the model needs 4 times as much processing power.",
+        "Curating what goes in matters as much as the space available.",
+        "So stop pasting everything. Keep only what the answer needs. Follow for one tech topic a day.",
+    ],
+    "scenes": [
+        {"type": "hook", "kicker": "TECH IN A BITE", "big1": "Stop pasting everything", "big2": "into your AI.", "sub": "Recall can drop.", "size1": 92, "size2": 110},
+        {"type": "stat", "title": "A large language model has a context window", "value": "Text, in tokens", "label": "The amount of text the model can consider at any one time.", "size": 100},
+        {"type": "steps", "title": "Think of the context window as working memory", "items": ["The context window works like the model's working memory.", "It counts tokens, not words."], "gap": 1.6},
+        {"type": "stat", "title": "A decent estimate: 1.5 tokens per word", "value": "1,000 words", "label": "is about 1,500 tokens.", "size": 120, "note": "Example estimate. Different models count tokens differently."},
+        {"type": "versus", "title": "What happens when text is too long", "left": {"head": "Fits in the window", "points": ["The model can consider all of it."]}, "right": {"head": "Bigger than the window", "points": ["It must be truncated or summarized."]}},
+        {"type": "bars", "title": "More tokens in context can mean worse recall", "items": [{"label": "Fewer tokens in the context window", "frac": 0.9, "color": (95, 220, 190), "value": "Better accuracy and recall"}, {"label": "More tokens in the context window", "frac": 0.4, "color": (255, 190, 60), "value": "Accuracy and recall degrade"}], "note": "Illustration, not to scale: bar length shows accuracy and recall, not token count. This effect is called context rot."},
+        {"type": "stat", "title": "Longer input often costs more computing", "value": "4 times", "label": "as much processing power when 1,500 input tokens double to 3,000 tokens.", "size": 130},
+        {"type": "steps", "title": "Curate what goes into the context window", "items": ["Choose what you paste in.", "That matters as much as how much space the window has."], "gap": 1.9},
+        {"type": "cta", "big": "Stop pasting everything.", "sub": "Keep only what the answer needs.", "size": 80, "line": "Follow for one tech topic a day.", "no_follow": True},
+    ],
+}

@@ -84,7 +84,7 @@ def collect(obj, key=""):
 # ----------------------------------------------------------------------------- text patterns
 RE_NUM = re.compile(r"(?<![\w.])(\d+(?:[.,]\d+)*)(?:\s+(million|billion|thousand|percent))?|\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b", re.I)
 RE_LABEL = re.compile(r"\b([A-Za-z]+)\s+(\d{1,3})\b")
-RE_COUNT = re.compile(r"\b(\d{1,2}|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+([A-Za-z]+)", re.I)
+RE_COUNT = re.compile(r"(?<![\d.,])\b(\d{1,2}|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+([A-Za-z]+)", re.I)
 
 def numbers_in(text):
     """Number tokens in text, excluding 'Noun 3' entity labels. Returns normalised strings."""
