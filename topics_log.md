@@ -7,7 +7,7 @@ Mix: AI for everyday people, developers, engineers and managers, plus cloud, dat
 | 01 | 2026-11-01 | Gemini Notebook (ex NotebookLM) | New name, cloud computer per notebook | Google announcement coverage |
 | 02 | 2026-11-01 | ChatGPT Work (OpenAI, launched 9 Jul 2026) | Agent that builds sheets/decks, asks approval | SiliconANGLE, Fox Business |
 | 04 | 2026-11-02 | What a database index does (45 s, no burned-in subtitles) | "How can a database find one row out of ten million without looking at the rest?" | PostgreSQL docs (postgrespro mirror), Use The Index, Luke |
-| 05 | 2026-11-02 | What a load balancer does (51 s) | "3 rules decide which server answers you, and one failure can take the whole site down." | freenginx load balancing docs, ByteByteGo System Design 101 |
+| 05 | 2026-11-02 | What a load balancer does: 3 algorithms (54 s) | "3 algorithms decide which server answers you, and one failure can sink the site." | freenginx load balancing docs, ByteByteGo System Design 101 |
 | 03 | 2026-11-01 | Why Redis is fast (RAM, single thread, pipelining) | "Why is Redis so fast? Three reasons." | Redis benchmark docs (via redict.io mirror), AlgoMaster |
 
 ## Backlog
