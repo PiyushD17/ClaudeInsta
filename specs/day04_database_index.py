@@ -1,0 +1,26 @@
+SPEC = {
+    "tag": "@TECHINABITE",
+    "pace_wps": 3.2,
+    "captions": False,
+    "music": {"bpm": 108, "seed": 5, "variant": 0},
+    "lines": [
+        ("How can a database find one row out of ten million without looking at the rest?"),
+        ("Without help, it checks every row, one by one, until it finds yours. That's a full table scan, and it slows down as the table grows."),
+        ("The fix is an index. Like the index at the back of a book: you look up the word and jump straight to the page."),
+        ("Databases build it as a tree. Pick a branch, pick another. Even with millions of rows, it's typically four or five levels deep."),
+        ("But it isn't free. Every write has to update the index too. So index what you search by, and drop what you never use."),
+        ("That's an index. Follow for one tech topic a day."),
+    ],
+    "scenes": [
+        {"type": "hook", "kicker": "TECH IN A BITE", "big1": "1 row in", "big2": "10 million records", "sub": "How does a database find it without checking them all?", "size1": 130, "size2": 92},
+        {"type": "scan", "title": "Without an index, it checks every row", "scan_secs": 7.2, "target": 116,
+         "found": "It found the row, but only at the very end.", "note": "Illustration: a table of 120 rows, checked in order."},
+        {"type": "lookup", "title": "Look it up, then jump straight to it", "list_label": "THE INDEX AT THE BACK OF A BOOK",
+         "items": [("Cache", 12), ("Database", 47), ("Index", 88), ("Query", 134), ("Table", 201)], "target": 2,
+         "page_label": "Page 88", "note": "A database index works the same way."},
+        {"type": "tree", "title": "Databases store an index as a tree", "note": "Real indexes with millions of rows are typically four or five levels deep."},
+        {"type": "writes", "title": "But an index has a cost", "note1": "Every write updates the table and the index.",
+         "chips": [("email", "searched all the time: keep it", True), ("fax_number", "never searched: drop it", False)]},
+        {"type": "cta", "big": "Index what you search by.", "sub": "Not every column.", "size": 76, "line": "One tech topic a day."},
+    ],
+}

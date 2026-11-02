@@ -1,0 +1,25 @@
+SPEC = {
+    "tag": "@TECHINABITE",
+    "dur": 23.5,
+    "music": {"bpm": 120, "seed": 21, "variant": 2},
+    "lines": [
+        ("Why is Redis so fast? Three reasons.", 0.2, 2.7),
+        ("One: all your data lives in memory, not on disk.", 3.0, 6.4),
+        ("Two: commands run one at a time on a single thread, so there's almost no concurrency overhead.", 6.7, 12.4),
+        ("Three: pipelining sends commands in batches. One benchmark went from 74,000 to over 400,000 a second.", 12.7, 19.0),
+        ("Memory, one thread, batches. Follow for one tech topic a day.", 19.3, 23.0),
+    ],
+    "scenes": [
+        {"type": "hook", "kicker": "TECH IN A BITE", "big1": "Why is Redis", "big2": "so fast?", "sub": "Three reasons", "size1": 120, "size2": 150},
+        {"type": "bars", "title": "1. It lives in memory",
+         "items": [{"label": "Memory (RAM)", "frac": 0.04, "color": (95, 220, 190), "value": "nanoseconds"},
+                   {"label": "Disk", "frac": 1.0, "color": (255, 190, 60), "value": "milliseconds"}],
+         "note": "Illustration, not to scale"},
+        {"type": "lane", "title": "2. One command at a time", "sub": "One thread, almost no concurrency overhead", "worker": "REDIS", "blocks": 6, "note": "Commands are processed in order"},
+        {"type": "bars", "title": "3. Pipelining sends commands in batches",
+         "items": [{"label": "One command per round trip (SET)", "frac": 0.18, "color": (146, 156, 178), "num": 74000, "unit": " /sec"},
+                   {"label": "Pipelined, 16 per batch (SET)", "frac": 0.97, "color": (95, 220, 190), "num": 403000, "unit": "+ /sec"}],
+         "note": "Redis benchmark docs example. Your numbers will differ."},
+        {"type": "cta", "big": "Memory + one thread", "sub": "plus batching. That is why Redis is fast.", "size": 84, "line": "One tech topic a day."},
+    ],
+}
