@@ -1,0 +1,26 @@
+SPEC = {
+    "tag": "@TECHINABITE",
+    "pace_wps": 3.2,
+    "captions": False,
+    "music": {"bpm": 112, "seed": 23, "variant": 1},
+    "lines": [
+        "Never host everything in one place. One failure hits all.",
+        "On AWS, regions are separate geographic areas. Each region has multiple, isolated locations known as Availability Zones.",
+        "An AWS Availability Zone is one or more discrete data centers with independent and redundant power infrastructure, networking, and connectivity.",
+        "AWS Availability Zones in a region are up to 60 miles apart, so one fire or flood is designed not to hit them all. They're still close enough for single-digit millisecond latency.",
+        "Say all your instances run in one zone, Zone A. If Zone A fails, none of your instances would be available.",
+        "Spread them across two Availability Zones, Zone A and Zone B. If Zone A fails, you can design your application so an instance in Zone B handles requests instead.",
+        "The catch: Azure's documentation says availability zones don't protect against a full-region outage.",
+        "So never keep everything in one place. Spread it across zones. Follow for one tech topic a day.",
+    ],
+    "scenes": [
+        {"type": "hook", "kicker": "TECH IN A BITE", "big1": "Never host everything", "big2": "in one place.", "sub": "One failure hits all.", "size1": 92, "size2": 120},
+        {"type": "steps", "title": "AWS Regions contain Availability Zones", "items": ["Regions are separate geographic areas.", "Each region has multiple, isolated locations known as Availability Zones."], "gap": 2.4},
+        {"type": "steps", "title": "What an Availability Zone is on AWS", "items": ["It is one or more discrete data centers.", "It has independent and redundant power infrastructure, networking, and connectivity."], "gap": 2.8},
+        {"type": "stat", "title": "Distance between AWS zones in a region", "value": "Up to 60 miles", "label": "Far enough that one fire or flood is designed not to hit them all, yet close enough for single-digit millisecond latency.", "size": 130},
+        {"type": "steps", "title": "Example: all instances in one zone", "items": ["All of your instances run in Zone A.", "Zone A fails.", "None of your instances would be available."], "gap": 1.5},
+        {"type": "steps", "title": "Example: the same app across two zones", "items": ["Your instances run in Zone A and Zone B.", "Zone A fails.", "You can design your application so an instance in Zone B handles requests instead."], "gap": 1.6},
+        {"type": "stat", "title": "What availability zones cannot cover", "value": "A full-region outage", "label": "Azure documentation: availability zones don't protect against a full-region outage.", "size": 84},
+        {"type": "cta", "big": "Spread it across zones.", "sub": "Never keep everything in one place.", "size": 84, "line": "Follow for one tech topic a day.", "no_follow": True},
+    ],
+}

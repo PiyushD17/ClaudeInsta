@@ -9,6 +9,7 @@ Mix: AI for everyday people, developers, engineers and managers, plus cloud, dat
 | 04 | 2026-11-02 | What a database index does (45 s, no burned-in subtitles) | "How can a database find one row out of ten million without looking at the rest?" | PostgreSQL docs (postgrespro mirror), Use The Index, Luke |
 | 03 | 2026-11-01 | Why Redis is fast (RAM, single thread, pipelining) | "Why is Redis so fast? Three reasons." | Redis benchmark docs (via redict.io mirror), AlgoMaster |
 | 06 | 2026-11-02 | What a context window is (AI for everyday people) | "Stop pasting everything into your AI. Recall can drop." | Anthropic docs (context windows), IBM Think (context window) |
+| 07 | 2026-11-02 | Availability Zones (cloud) | "Never host everything in one place. One failure hits all." | AWS EC2 guide, AWS fault isolation whitepaper, Azure availability zones overview |
 
 ## Backlog
 AI: Claude Cowork, Microsoft Copilot Cowork, Perplexity, Cursor, Notion AI, Canva AI

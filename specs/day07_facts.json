@@ -1,0 +1,68 @@
+{
+ "terms": [
+  {
+   "use": "Availability Zone",
+   "never_say": [
+    "data center zone",
+    "server zone"
+   ]
+  },
+  {
+   "use": "region",
+   "never_say": []
+  },
+  {
+   "use": "instances",
+   "never_say": []
+  }
+ ],
+ "counts": {
+  "availability": 2,
+  "zone": 2
+ },
+ "illustrative_numbers": [
+  "two"
+ ],
+ "claims": [
+  {
+   "say": "Never host everything in one place. One failure hits all.",
+   "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+   "quote": "If you host all of your instances in a single location that is affected by a failure, none of your instances would be available."
+  },
+  {
+   "say": "On AWS, regions are separate geographic areas. Each region has multiple, isolated locations known as Availability Zones.",
+   "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+   "quote": "Regions are separate geographic areas. ... Each Region has multiple, isolated locations known as Availability Zones."
+  },
+  {
+   "say": "An AWS Availability Zone is one or more discrete data centers with independent and redundant power infrastructure, networking, and connectivity.",
+   "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/availability-zones.html",
+   "quote": "An Availability Zone is one or more discrete data centers with independent and redundant power infrastructure, networking, and connectivity in an AWS Region."
+  },
+  {
+   "say": "AWS Availability Zones in a region are up to 60 miles apart, so one fire or flood is designed not to hit them all; close enough for single-digit millisecond latency.",
+   "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/availability-zones.html",
+   "quote": "Availability Zones in a Region are meaningfully distant from each other, up to 60 miles (about 100 km) to prevent correlated failures, but close enough to use synchronous replication with single-digit millisecond latency. ... They’re designed to avoid simultaneous impact from shared fate scenarios such as utility power, water disruption, fiber isolation, earthquakes, fires, tornadoes, or floods."
+  },
+  {
+   "say": "Say all instances run in Zone A; if Zone A fails, none would be available (example).",
+   "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+   "quote": "If you host all of your instances in a single location that is affected by a failure, none of your instances would be available."
+  },
+  {
+   "say": "Spread across two Availability Zones, Zone A and Zone B; you can design your application so an instance in Zone B handles requests instead (example uses two zones).",
+   "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+   "quote": "If you distribute instances across multiple Availability Zones and an instance fails, you can design your application so that an instance in another Availability Zone handles requests instead."
+  },
+  {
+   "say": "Azure's documentation says availability zones don't protect against a full-region outage.",
+   "source": "https://learn.microsoft.com/en-us/azure/reliability/availability-zones-overview",
+   "quote": "Availability zones don't protect against a full-region outage."
+  },
+  {
+   "say": "Spread it across zones; never keep everything in one place.",
+   "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+   "quote": "By launching EC2 instances in multiple Availability Zones, you can protect your applications from the failure of a single location in the Region."
+  }
+ ]
+}
