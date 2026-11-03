@@ -15,6 +15,7 @@ Facts file (written by the daily run from the sources it actually opened), JSON:
 {
   "terms":   [{"use": "load balancing algorithm", "never_say": ["rule", "rules"]}],
   "counts":  {"algorithm": 2},                    # sizes of sets that a source states ("two common algorithms")
+  "rehook":  {"line": 4, "payoff_line": 6},      # script lines (1-based): the mid-video second hook and the line that answers it
   "illustrative_numbers": ["4"],                  # numbers invented for a worked example (must be labelled as an example)
   "claims":  [{"say": "...", "source": "https://...", "quote": "text copied from the opened page"}]
 }
@@ -228,6 +229,30 @@ def text_checks(spec, lines, bounds, facts, legacy):
         if stated and top > max(stated):
             add("FAIL", "ENTITY_COUNT", f'A scene shows "{noun} {top}" but the text only counts {sorted(stated)} {noun}s.')
 
+    # rehook: a second hook in the middle that the video pays off later
+    rh = facts.get("rehook")
+    if not rh:
+        add("FAIL", "REHOOK_MISSING", 'The facts file needs "rehook": {"line": N, "payoff_line": M} (1-based script lines).')
+    else:
+        n, m = rh.get("line"), rh.get("payoff_line")
+        wc = [len(l.split()) for l in lines]
+        total = sum(wc)
+        if not (isinstance(n, int) and isinstance(m, int) and 1 < n <= len(lines) and n < m <= len(lines)):
+            add("FAIL", "REHOOK_LINES", f"rehook line {n} / payoff_line {m} are not valid script lines (payoff must come after the rehook).")
+        else:
+            frac = sum(wc[:n - 1]) / total
+            if not 0.25 <= frac <= 0.65:
+                add("FAIL", "REHOOK_POSITION", f"The rehook (line {n}) starts {frac:.0%} into the script. It belongs in the middle (25% to 65%).")
+            pay = sum(wc[:m - 1]) / total
+            if pay > 0.85:
+                add("WARN", "ANSWER_LATE", f"The payoff (line {m}) arrives {pay:.0%} into the script. Deliver the answer by about 80%.")
+            sys.path.insert(0, HERE)
+            import rehookscore
+            first = re.split(r"(?<=[.?!])\s", lines[n - 1].strip())[0]
+            ov, comps, flags, ok = rehookscore.score(first)
+            if not ok:
+                weakest = min(comps, key=comps.get)
+                add("FAIL", "REHOOK_SCORE", f'Rehook "{first}" scores {ov} (needs 60+, every part 40+, no flags; weakest: {weakest} {comps[weakest]}). Write sharper candidates.')
     # short labels: stranger test
     for i, items in enumerate(onscreen):
         for k, t in items:

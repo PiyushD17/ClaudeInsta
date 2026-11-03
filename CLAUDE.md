@@ -19,6 +19,10 @@ When the user sends a voice recording later: measure it, retime the spec, then `
 - Length 30-60 seconds. No burned-in captions: the user adds subtitles in ElevenLabs (specs use "captions": False).
 - The final line is always the call to action: "Follow for one tech topic a day."
 
+## Rehook (mid-video second hook)
+Every video has one rehook 25-65% of the way in that renews curiosity and is answered later (answer by about 80%). It must be true and sourced.
+Score it with `python3 rehookscore.py`: PASS is overall 60+ and every component 40+ (the opening hook needs 70/55). See RUN_DAILY.md section 3.
+
 ## Hook quality is mandatory
 Every video's hook must score STRONG (70+) on `skills/ig-reel/hookscore.py` before rendering. If the first batch of hooks scores lower, write new hooks
 and score again (up to 5 rounds) instead of rendering a weak opening. See RUN_DAILY.md section 3. Engagement matters as much as accuracy.

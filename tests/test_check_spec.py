@@ -4,7 +4,7 @@ import subprocess, sys, os
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 r = subprocess.run([sys.executable, "check_spec.py", "tests/day05_regression/spec.py", "--facts", "tests/day05_regression/facts.json"],
                    cwd=root, capture_output=True, text=True)
-need = ["WRONG_TERM", "COUNT_UNSOURCED", "ENUM_UNSOURCED", "ENTITY_SET", "SHORT_LABEL"]
+need = ["WRONG_TERM", "COUNT_UNSOURCED", "ENUM_UNSOURCED", "ENTITY_SET", "SHORT_LABEL", "REHOOK_SCORE"]
 missing = [c for c in need if c not in r.stdout]
 assert r.returncode == 1, "checker should fail the faulty Day 05 spec"
 assert not missing, f"checker missed: {missing}"

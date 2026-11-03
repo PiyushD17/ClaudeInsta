@@ -52,6 +52,20 @@ A video is only worth delivering if people stay past the first three seconds. Th
    (it must say the same thing as the spoken hook, as a complete thought). If either drops below 70, fix it and re-render. Never deliver a
    video whose final hook differs from the one that passed.
 
+**Rehook gate (mandatory, same discipline as the hook gate):** the video has two hooks, an opening hook and one rehook in the middle that renews curiosity.
+Structure: hook, delay #1 (problem and setup, answer withheld), REHOOK, delay #2 (building toward the answer), answer, takeaway, closing line.
+1. Pick the rehook line: it starts 25% to 65% of the way through the script (by words) and raises a NEW open question, a surprise, or a higher stake
+   ("But your 4 servers still fail if the balancer itself breaks."). It must be TRUE and backed by a source quote. No fake cliffhangers, no "you won't believe it".
+2. Write at least 6 rehook candidates (5 to 14 words, concrete: a number or named thing from the sources, speaking to "you", tension up front).
+   Put them in `out/dayNN_rehooks.txt` and run `python3 rehookscore.py out/dayNN_rehooks.txt`.
+3. Target: PASS = overall 60 or more, every component 40 or more, no flags. (The opening hook needs 70/55; a rehook may be a little lower, but far above WEAK, which is under 50.)
+   If the best is below the bar, write a NEW batch with a sharper angle and score again, up to 5 rounds. If still below after 5 rounds, deliver the best one but
+   start the summary with "REHOOK BELOW TARGET" and show the scores.
+4. The rehook must be paid off: a later script line (the payoff) answers exactly what the rehook raised, and the main answer arrives by about 80% of the script.
+   Only one rehook per video; do not stall.
+5. Give the rehook scene a visible change on screen (a new scene type, a highlighted word or a flip) so viewers notice the second hook.
+6. Record it in the facts file: `"rehook": {"line": N, "payoff_line": M}` (1-based script lines). `check_spec.py` verifies position, payoff order and re-scores the line.
+
 **Engagement gate (also mandatory):**
 - Run `python3 skills/ig-reel/beats.py script.txt --target <seconds> --wpm 190` and fix every flag it raises (hook too long, a beat that drags,
   a stretch with nothing concrete, no loop). Re-run until clean.
@@ -63,7 +77,7 @@ A video is only worth delivering if people stay past the first three seconds. Th
 **Then write the script** on the winning hook: plain spoken language, contractions, short lines, run it through ig-human.
 - Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule is stricter: every on-screen
   string must be a clean, complete, self-explaining sentence or label. Never clipped fragments.
-- Shape: hook, the problem, the fix, the catch, one takeaway, then exactly: "Follow for one tech topic a day."
+- Shape: hook, the problem (delay #1), rehook, the build-up (delay #2), the answer, one takeaway, then exactly: "Follow for one tech topic a day."
 - Length: 100 to 190 words (about 30 to 60 seconds at 3.2 words/second) and at most about 950 characters, because the voiceover
   uses limited free credits. No greeting, no "in this video".
 - Explain one idea only. Use a concrete example or analogy. Say what it costs or where it breaks, not only why it is great.
@@ -129,10 +143,10 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_<slug>_bgm.wav`
 - `out/dayNN_script.txt`: the voiceover script exactly as it should be pasted into ElevenLabs, one paragraph per line
 - `out/dayNN_caption.txt`
-- `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked)
+- `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked); `out/dayNN_rehooks.txt` likewise for the rehook
 - `out/dayNN_sources.md`: each source as a link with what it supports, plus the claim table (what the video says, source link, quote)
 - `out/dayNN_check.md`: the checker report and the reviewer's verdict
-Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), how many hook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
+Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), the rehook with its score, how many hook and rehook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
 The summary must be readable on its own.
 
 ## 7. Update the log
@@ -142,6 +156,7 @@ If neither works, say so in the summary and list the row to add by hand.
 
 ## Quality gates (do not deliver if any fails)
 - Hook: final spoken hook and on-screen hook score STRONG (70+) on hookscore.py, or the summary starts with "HOOK BELOW TARGET" after 5 rounds.
+- Rehook: one rehook in the middle (25-65% of the script) that passes `rehookscore.py` (60+, every part 40+) or the summary starts with "REHOOK BELOW TARGET"; it is answered later and the answer arrives by about 80%.
 - Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
 - Every fact traced to an opened source, with a quote in the claim table. Key terms exactly as the sources write them; no look-alike words.
 - `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
