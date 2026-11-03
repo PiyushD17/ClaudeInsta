@@ -1,6 +1,6 @@
 import sys, math, subprocess, os
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H, FPS, DUR = 1080, 1920, 30, 25.0
 F = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts") + os.sep
@@ -475,6 +475,48 @@ def scene_bounds():
     ends = starts[1:] + [DUR + 0.5]
     return list(zip(starts, ends))
 
+# ----- mascot: the page's character (assets/mascot.png), drawn as a floating badge -----
+_MASCOT = {}
+def _mascot_img():
+    if "img" not in _MASCOT:
+        _MASCOT["img"] = Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "mascot.png")).convert("RGBA")
+    return _MASCOT["img"]
+
+def mascot_cfg(sc):
+    """Placement for one scene: SPEC["mascot"] gives defaults, a scene's "mascot" overrides (False = hidden)."""
+    base = SPEC.get("mascot")
+    if not base: return None
+    over = sc.get("mascot", {})
+    if over is False: return None
+    cfg = {"x": 850, "y": 1290, "size": 250}
+    cfg.update(base if isinstance(base, dict) else {})
+    cfg.update(over if isinstance(over, dict) else {})
+    return cfg
+
+def draw_mascot(img, t, u, a, cfg):
+    """Gentle bob and tilt all the time, a pop-in when the scene starts. No mouth animation."""
+    size = cfg["size"] * (0.6 + 0.4 * ease(fade(u, 0.0, 0.45)) + 0.06 * math.sin(clamp(u / 0.45) * math.pi))
+    m = _mascot_img().resize((int(size), int(size)), Image.LANCZOS)
+    m = m.rotate(3.0 * math.sin(t * 2 * math.pi / 3.1), resample=Image.BICUBIC, expand=True)
+    cx = cfg["x"]; cy = cfg["y"] + 9 * math.sin(t * 2 * math.pi / 2.4)
+    glow = Image.new("RGBA", (int(size * 1.6),) * 2, (0, 0, 0, 0))
+    ImageDraw.Draw(glow).ellipse((size * 0.2, size * 0.2, size * 1.4, size * 1.4), fill=(110, 90, 255, int(60 * a)))
+    glow = glow.filter(ImageFilter.GaussianBlur(size * 0.12))
+    img.paste(glow, (int(cx - glow.width / 2), int(cy - glow.height / 2)), glow)
+    if a < 0.999:
+        al = m.getchannel("A").point(lambda v: int(v * a)); m.putalpha(al)
+    img.paste(m, (int(cx - m.width / 2), int(cy - m.height / 2)), m)
+
+def mascot_boxes():
+    """Boxes (x0, y0, x1, y1) the mascot can occupy, for the checker to ignore."""
+    out = []
+    for sc in SPEC["scenes"]:
+        c = mascot_cfg(sc)
+        if c:
+            r = c["size"] * 0.8
+            out.append((c["x"] - r, c["y"] - r - 12, c["x"] + r, c["y"] + r + 12))
+    return out
+
 def frame(t):
     img = Image.new("RGB", (W, H), BG)
     d = SoftDraw(img)
@@ -483,6 +525,20 @@ def frame(t):
         a = sw(t, s0, s1, 0.3, 0.3 if s1 < DUR else 0.1)
         if a > 0:
             SCENES[sc["type"]](d, t - s0, a, sc)
+    if SPEC.get("mascot"):
+        bounds = scene_bounds()
+        idx = max([i for i, (s0, _) in enumerate(bounds) if t >= (s0 + 0.3 if i else 0.0)] or [0])
+        u = t - ((bounds[idx][0] + 0.3) if idx else 0.0)
+        cur = mascot_cfg(SPEC["scenes"][idx])
+        prev = mascot_cfg(SPEC["scenes"][idx - 1]) if idx else None
+        if cur and prev:                       # glide between placements, bump at each new line
+            k = ease(u / 0.4)
+            cur = dict(cur, **{n: prev[n] + (cur[n] - prev[n]) * k for n in ("x", "y", "size")})
+            draw_mascot(img, t, u, 1.0, cur)
+        elif cur:
+            draw_mascot(img, t, u, clamp(u / 0.3), cur)
+        elif prev and u < 0.3:
+            draw_mascot(img, t, 9, 1 - u / 0.3, prev)
     if SPEC.get("captions", True):
         captions(d, t)
     return img

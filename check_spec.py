@@ -266,6 +266,34 @@ def text_checks(spec, lines, bounds, facts, legacy):
     # side-by-side listing for the reviewer
     return onscreen
 
+def mascot_overlap_checks(path):
+    """FAIL when the mascot sits on top of scene content. Renders each scene without the mascot and looks inside its box."""
+    import numpy as np
+    sys.path.insert(0, HERE)
+    import reel
+    reel.load_spec(path)
+    if not reel.SPEC.get("mascot"):
+        return
+    saved = reel.SPEC["mascot"]
+    for i, (sc, (s0, s1)) in enumerate(zip(reel.SPEC["scenes"], reel.scene_bounds())):
+        cfg = reel.mascot_cfg(sc)
+        if not cfg:
+            continue
+        x0, y0, x1, y1 = [int(v) for v in (cfg["x"] - cfg["size"] * 0.62, cfg["y"] - cfg["size"] * 0.62 - 12,
+                                           cfg["x"] + cfg["size"] * 0.62, cfg["y"] + cfg["size"] * 0.62 + 12)]
+        if x0 < 0 or x1 > reel.W or y0 < 230 or y1 > 1440:
+            add("FAIL", "MASCOT_ZONE", f"Scene {i + 1}: mascot box {x0},{y0}-{x1},{y1} leaves the safe zone (x 0-1080, y 230-1440).")
+        reel.SPEC["mascot"] = None
+        try:
+            for t in np.linspace(s0 + 0.6, max(s0 + 0.7, s1 - 0.5), 5):
+                fr = np.asarray(reel.frame(float(t)).convert("L"), dtype=np.int16)
+                box = fr[max(0, y0):y1, max(0, x0):x1]
+                if (np.abs(box - np.median(fr[:, :8], axis=1)[max(0, y0):y1, None]) > 30).sum() > 150:
+                    add("FAIL", "MASCOT_OVERLAP", f"Scene {i + 1}: the mascot covers scene content around t={t:.1f}s. Move or shrink it with a per-scene \"mascot\" setting, or hide it with \"mascot\": False.")
+                    break
+        finally:
+            reel.SPEC["mascot"] = saved
+
 def side_by_side(spec, lines, bounds, onscreen):
     out = ["", "## Script next to on-screen text (reviewer reads this)"]
     for i, sc in enumerate(spec["scenes"]):
@@ -276,7 +304,7 @@ def side_by_side(spec, lines, bounds, onscreen):
     return "\n".join(out)
 
 # ----------------------------------------------------------------------------- video checks
-def video_checks(path, bounds, sheet_path):
+def video_checks(path, bounds, sheet_path, ignore_boxes=()):
     import numpy as np
     probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
                            capture_output=True, text=True)
@@ -291,6 +319,8 @@ def video_checks(path, bounds, sheet_path):
     # true background per row, taken from the empty left margin (text never goes there)
     bg = np.median(gray[:, :, :8], axis=(0, 2))[None, :, None]
     mask = np.abs(gray - bg) > 30
+    for bx0, by0, bx1, by1 in ignore_boxes:          # the mascot is always on screen: do not count it as content
+        mask[:, max(0, int(by0 / 4)):int(by1 / 4) + 1, max(0, int(bx0 / 4)):int(bx1 / 4) + 1] = False
     # Instagram safe zone: nothing in the top 230 px (rows < 57) or below y=1440 (rows > 360)
     bad = [i / fps for i in range(len(mask)) if mask[i, :57].sum() > 25 or mask[i, 360:].sum() > 25]
     if bad:
@@ -344,8 +374,15 @@ def main():
         spec, lines, bounds, dur = load_spec(a.spec)
         onscreen = text_checks(spec, lines, bounds, facts, a.legacy) or [collect(sc) for sc in spec["scenes"]]
         extra = side_by_side(spec, lines, bounds, onscreen)
+        mascot_overlap_checks(a.spec)
     if a.video:
-        video_checks(a.video, bounds, a.sheet)
+        boxes = []
+        if a.spec:
+            sys.path.insert(0, HERE)
+            import reel
+            reel.load_spec(a.spec)
+            boxes = reel.mascot_boxes() if reel.SPEC.get("mascot") else []
+        video_checks(a.video, bounds, a.sheet, boxes)
     report = ["# Check report"]
     for level in ("FAIL", "WARN"):
         for lv, code, msg in findings:
