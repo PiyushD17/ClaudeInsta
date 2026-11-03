@@ -254,12 +254,14 @@ def sc_approval(d, u, a, sc):
     d.text((W / 2, 1090), "Illustration", font=REG(26), fill=A(MUTED, a), anchor="mm")
 
 def sc_cta(d, u, a, sc):
-    v = ease(fade(u, 0.2, 0.8))
+    v = ease(fade(u, 0.0, 0.5))
     d.text((W / 2, 600), sc["big"], font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
-    d.text((W / 2, 720), sc["sub"], font=MED(44), fill=A(MUTED, a * v), anchor="mm")
+    for i, ln in enumerate(wrap(d, sc["sub"], MED(44), 880)):
+        d.text((W / 2, 720 + i * 60), ln, font=MED(44), fill=A(MUTED, a * v), anchor="mm")
     c = ease(fade(u, 3.4, 4.0)) * a
-    d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70), fill=A(TEXT, c), anchor="mm")
-    d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
+    d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70 if len(sc.get("line", "")) < 25 else 60), fill=A(TEXT, c), anchor="mm")
+    if not sc.get("no_follow"):
+        d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
 
 
 def sc_bars(d, u, a, sc):

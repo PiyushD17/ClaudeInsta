@@ -8,6 +8,7 @@ Mix: AI for everyday people, developers, engineers and managers, plus cloud, dat
 | 02 | 2026-11-01 | ChatGPT Work (OpenAI, launched 9 Jul 2026) | Agent that builds sheets/decks, asks approval | SiliconANGLE, Fox Business |
 | 04 | 2026-11-02 | What a database index does (45 s, no burned-in subtitles) | "How can a database find one row out of ten million without looking at the rest?" | PostgreSQL docs (postgrespro mirror), Use The Index, Luke |
 | 03 | 2026-11-01 | Why Redis is fast (RAM, single thread, pipelining) | "Why is Redis so fast? Three reasons." | Redis benchmark docs (via redict.io mirror), AlgoMaster |
+| 08 | 2026-11-03 | What a database transaction does | "Can a crash lose your $100 mid-transfer?" | PostgreSQL docs (transactions), Wikipedia (ACID) |
 
 ## Backlog
 AI: Claude Cowork, Microsoft Copilot Cowork, Perplexity, Cursor, Notion AI, Canva AI

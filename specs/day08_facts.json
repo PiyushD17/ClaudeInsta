@@ -1,0 +1,126 @@
+{
+ "terms": [
+  {
+   "use": "transaction",
+   "never_say": [
+    "atomic transaction",
+    "ACID",
+    "batch"
+   ]
+  },
+  {
+   "use": "all-or-nothing",
+   "never_say": []
+  },
+  {
+   "use": "debited",
+   "never_say": [
+    "charged"
+   ]
+  }
+ ],
+ "counts": {},
+ "illustrative_numbers": [],
+ "claims": [
+  {
+   "say": "Can a crash lose your $100 mid-transfer? (hook; the video answers: without a transaction a failure partway through the transfer is a problem, with one none of the steps take effect)",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "if something goes wrong partway through the operation, none of the steps executed so far will take effect"
+  },
+  {
+   "say": "Say Alice sends Bob $100.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "Suppose that we want to record a payment of $100.00 from Alice's account to Bob's account."
+  },
+  {
+   "say": "The bank takes $100 from Alice.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "UPDATE accounts SET balance = balance - 100.00 WHERE name = 'Alice'"
+  },
+  {
+   "say": "...then adds $100 to Bob.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "UPDATE accounts SET balance = balance + 100.00 WHERE name = 'Bob'"
+  },
+  {
+   "say": "Those are several separate updates.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "the important point is that there are several separate updates involved to accomplish this rather simple operation"
+  },
+  {
+   "say": "If the system fails between them, Alice is debited and Bob is never credited.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "Nor would Alice long remain a happy customer if she was debited without Bob being credited."
+  },
+  {
+   "say": "Alice would not stay a happy customer.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "Nor would Alice long remain a happy customer if she was debited without Bob being credited."
+  },
+  {
+   "say": "The fix is a transaction; it bundles those steps into a single, all-or-nothing operation (also: together, they form one all-or-nothing operation).",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "The essential point of a transaction is that it bundles multiple steps into a single, all-or-nothing operation."
+  },
+  {
+   "say": "If something goes wrong partway through, none of the steps take effect. (Alice keeps her $100.)",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "if something goes wrong partway through the operation, none of the steps executed so far will take effect"
+  },
+  {
+   "say": "If nothing fails, all the steps take effect together.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "whereupon all the updates become visible simultaneously"
+  },
+  {
+   "say": "Alice's $100 reaches Bob when nothing fails (the Alice-to-Bob payment is the transaction's updates becoming visible together).",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "The updates made so far by an open transaction are invisible to other transactions until the transaction completes, whereupon all the updates become visible simultaneously."
+  },
+  {
+   "say": "Either all of it happens, or none of it.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "A transaction is said to be atomic: from the point of view of other transactions, it either happens completely or not at all."
+  },
+  {
+   "say": "A transactional database logs a transaction's updates on disk before it reports the transaction complete.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "A transactional database guarantees that all the updates made by a transaction are logged in permanent storage (i.e., on disk) before the transaction is reported complete."
+  },
+  {
+   "say": "So a completed transaction survives a crash / is not lost in a crash.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "once a transaction is completed and acknowledged by the database system, it has indeed been permanently recorded and won't be lost even if a crash ensues shortly thereafter"
+  },
+  {
+   "say": "Wikipedia agrees: once committed, a transaction stays committed.",
+   "source": "https://en.wikipedia.org/wiki/ACID",
+   "quote": "Durability guarantees that once a transaction has been committed, it will remain committed"
+  },
+  {
+   "say": "In PostgreSQL, you wrap the steps in BEGIN and COMMIT; BEGIN starts it, COMMIT completes it.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "In PostgreSQL, a transaction is set up by surrounding the SQL commands of the transaction with BEGIN and COMMIT commands."
+  },
+  {
+   "say": "The updates go in between BEGIN and COMMIT.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "BEGIN; UPDATE accounts SET balance = balance - 100.00 WHERE name = 'Alice'; -- etc etc COMMIT;"
+  },
+  {
+   "say": "In PostgreSQL, without BEGIN, each statement runs in its own transaction.",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "If you do not issue a BEGIN command, then each individual statement has an implicit BEGIN and (if successful) COMMIT wrapped around it."
+  },
+  {
+   "say": "A transaction keeps your $100 from being lost in a crash or left half moved (summary of the claims above).",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "none of the steps executed so far will take effect"
+  },
+  {
+   "say": "Safe transfers (CTA headline; summary of the above).",
+   "source": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+   "quote": "We need a guarantee that if something goes wrong partway through the operation, none of the steps executed so far will take effect."
+  }
+ ]
+}
