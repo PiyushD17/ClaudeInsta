@@ -106,6 +106,10 @@ different example numbers in different scenes, script/scene mismatch). WARN line
 3. The hook scene must have its big text on screen from the first frame and must read as a complete thought
    (for example "1 row in 10 million records", never "One row. Ten million.").
 4. Vary the music: change `bpm` (100-124), `seed` and `variant` (0, 1 or 2).
+   Mascot: every video shows the page mascot (`assets/mascot.png`, a smiling chat-bubble chip with a bite taken out). Keep `"mascot": {"x": 900, "y": 1270, "size": 230}`
+   in the spec. It bobs, tilts and bumps on each new line; it has no mouth animation. Never edit or replace the image. A scene may move or shrink it
+   (`"mascot": {"x": 985, "y": 700, "size": 150}`) or hide it (`"mascot": False`) when it would cover text or a diagram. Keep it inside x 0-1080, y 230-1440.
+   `check_spec.py` fails on any overlap, so fix those by moving the mascot first and only hide it when no free spot exists.
 5. Safe zone: keep everything between y=230 and y=1440 on the 1080x1920 frame (the template already does).
 6. Render: `python3 build.py specs/dayNN_<slug>.py` creates `out/dayNN_<slug>.mp4` (with music), `_silent.mp4` and `_bgm.wav`.
 7. Check: `ffprobe` duration must be 30 to 60 seconds. Render preview frames of every scene (for example with
@@ -160,6 +164,7 @@ If neither works, say so in the summary and list the row to add by hand.
 - Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
 - Every fact traced to an opened source, with a quote in the claim table. Key terms exactly as the sources write them; no look-alike words.
 - `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
+- Mascot present and never covering text or diagrams (`check_spec.py` reports no MASCOT_ZONE or MASCOT_OVERLAP FAIL).
 - One consistent worked example across all scenes; counts in text match what the pictures show.
 - Duration 30-60 s; script 100-190 words; ends with the closing line.
 - All on-screen text complete and fitting on screen; nothing in the top 230 px or bottom 480 px of the frame.

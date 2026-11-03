@@ -27,6 +27,9 @@ Score it with `python3 rehookscore.py`: PASS is overall 60+ and every component 
 Every video's hook must score STRONG (70+) on `skills/ig-reel/hookscore.py` before rendering. If the first batch of hooks scores lower, write new hooks
 and score again (up to 5 rounds) instead of rendering a weak opening. See RUN_DAILY.md section 3. Engagement matters as much as accuracy.
 
+## Mascot
+The page mascot is `assets/mascot.png` (owner-approved; a smiling chat-bubble chip with a bite taken out). Every video shows it via the spec's `"mascot"` key (see RUN_DAILY.md section 4). It never moves its mouth, never covers text, and stays inside the safe zone.
+
 ## Style
 Dark background, amber and mint accents, Inter font (bundled in `fonts/`). Music is original and synthesised
 (no copyright issues); vary `bpm`, `seed` and `variant` (0-2) per video in the spec's `music` block.

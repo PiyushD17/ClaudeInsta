@@ -329,11 +329,11 @@ def sc_scan(d, u, a, sc):
         else:
             d.rounded_rectangle([x, y, x + 58, y + 58], radius=12, fill=A(PANEL, a))
     count = target + 1 if found else idx + 1
-    d.text((W / 2, 1340), f"Rows checked: {count}", font=BOLD(60), fill=A(AMBER if found else TEXT, a), anchor="mm")
+    d.text((W / 2, 1326), f"Rows checked: {count}", font=BOLD(60), fill=A(AMBER if found else TEXT, a), anchor="mm")
     if found:
         k = ease(fade(u, t1, t1 + 0.4)) * a
-        d.text((W / 2, 1398), sc["found"], font=MED(38), fill=A(MINT, k), anchor="mm")
-    d.text((W / 2, 1434), sc.get("note", ""), font=REG(24), fill=A(MUTED, a), anchor="mm")
+        d.text((W / 2, 1382), sc["found"], font=MED(38), fill=A(MINT, k), anchor="mm")
+    d.text((W / 2, 1422), sc.get("note", ""), font=REG(24), fill=A(MUTED, a), anchor="mm")
 
 def sc_lookup(d, u, a, sc):
     """book-index lookup: step down a sorted list, then jump to the page"""
