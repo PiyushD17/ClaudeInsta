@@ -134,9 +134,22 @@ different example numbers in different scenes, script/scene mismatch). WARN line
    It re-checks the script and every on-screen string, then inspects the video: duration, content outside the Instagram safe zone, and dead or blank
    screens (FAIL at 0.5 s or more, WARN at 0.2 s or more). Fix and re-render until there is no FAIL and no WARN (zero warnings is the target; INFO length notes covered by `length_reason` are fine).
 
+## 4a. Animation review (mandatory; a still frame cannot show an animation bug)
+The contact sheet shows one frame per scene. It cannot show "request 1 hits token 1 but token 3 disappears". So every scene is also reviewed as a filmstrip.
+1. Make the filmstrips: `python3 animsheet.py specs/dayNN_slug.py out/dayNN_anim` (one PNG per scene, a frame every 0.8 s, each labelled with its time). Look at EVERY strip.
+2. Write `out/dayNN_anim_review.md`: for each scene a short table of time, what changed on screen, what the voice says at that moment, and OK or PROBLEM.
+3. Check these rules in every moving scene and fix every violation (fix the scene code, not the wording):
+   - Every moving object goes where the script says it goes, and the thing it hits is the thing that changes (request 1 consumes token 1, not token 3).
+   - Counters and labels always equal what is drawn (a counter that says 2 shows exactly 2 objects, in every frame, including the in-between frames).
+   - The order of events on screen equals the order of the words in the script, and each event happens while its sentence is spoken, not before or after.
+   - Nothing appears, vanishes or jumps without a cause; nothing is drawn over text; nothing leaves the safe zone mid-animation.
+   - The end state of each scene is exactly the claim of its sentence, and the worked example uses the same numbers in every scene.
+4. Any NEW or changed animated scene function gets a small regression test in `tests/` (see `tests/test_bucket_animation.py`: it renders frames and checks which objects are present at given times). Run all tests in `tests/` before delivering.
+5. Reviewer (section 4b) also receives the filmstrips and `out/dayNN_anim_review.md` and must narrate each strip frame by frame against the script and reply PASS or list discrepancies. A reviewer that only looks at the contact sheet has not reviewed the animation.
+
 ## 4b. Reviewer pass (mandatory, independent)
 The person who wrote the video must not be the only one to check it. Start a fresh reviewer with the Agent tool (general-purpose). Give it ONLY:
-the facts file, `out/dayNN_check.md` (which lists the script next to every on-screen string, scene by scene), and `out/dayNN_sheet.png` (frames of every scene).
+the facts file, `out/dayNN_check.md` (which lists the script next to every on-screen string, scene by scene), `out/dayNN_sheet.png` (frames of every scene), the filmstrips `out/dayNN_anim_sNN.png` and `out/dayNN_anim_review.md` (section 4a).
 Do not give it your drafting notes. Ask it to:
 1. For every spoken sentence, find the claim and source quote that supports it. List any sentence with no support.
 2. For every on-screen string, confirm it is true, uses the source term, and says the same thing as the spoken line of its scene.
@@ -165,6 +178,7 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked); `out/dayNN_rehooks.txt` likewise for the rehook
 - `out/dayNN_sources.md`: each source as a link with what it supports, plus the claim table (what the video says, source link, quote)
 - `out/dayNN_check.md`: the checker report and the reviewer's verdict
+- `out/dayNN_anim_review.md`: the filmstrip review table (and the filmstrip PNGs only if the owner asks)
 Then send one SendUserMessage: topic, length in seconds (with a reason if over 50 s), the send-or-save line and who it is for, the replay twist, the final hook with its hookscore (and the runner-up scores), the rehook with its score, how many hook and rehook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
 The summary must be readable on its own.
 
@@ -185,6 +199,7 @@ The repo copy is `results_log.md`.
 - Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
 - Every fact traced to an opened source, with a quote in the claim table. Key terms exactly as the sources write them; no look-alike words.
 - `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL and 0 WARN, every frame stands alone and names the topic, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
+- Animation review done (section 4a): filmstrips viewed, `out/dayNN_anim_review.md` written, no PROBLEM left, tests in `tests/` pass, reviewer narrated the filmstrips and replied PASS.
 - Mascot present and never covering text or diagrams (`check_spec.py` reports no MASCOT_ZONE or MASCOT_OVERLAP FAIL).
 - One consistent worked example across all scenes; counts in text match what the pictures show.
 - Reach: one send-or-save line and a replay twist recorded in the facts file; target 35-45 s (over 50 s needs a reason).

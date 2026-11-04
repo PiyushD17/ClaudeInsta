@@ -61,6 +61,9 @@ Everything written in a video must be clean, complete and understandable on its 
 - Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?" or "what are we talking about?", add the missing context. Do not rewrite a punchy line into a long sentence if the context is already clear.
 - Scripts tell a story (hook question, problem, fix, catch, takeaway), not a list of facts.
 
+## Animations must be correct
+Every moving scene is reviewed as a filmstrip (`animsheet.py`, RUN_DAILY.md section 4a), not only as one still frame: the right object must react, counters must equal what is drawn, and the order on screen must equal the order of the words. New animated scenes get a regression test in `tests/`.
+
 ## Zero warnings
 A video ships only with `check_spec.py` reporting 0 FAIL and 0 WARN (INFO length notes covered by a `length_reason` are fine). A warning means a frame, line or number is not good enough yet: fix it instead of accepting it.
 
