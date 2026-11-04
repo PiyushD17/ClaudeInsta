@@ -1,0 +1,133 @@
+{
+ "terms": [
+  {
+   "use": "token bucket algorithm",
+   "never_say": [
+    "token bucket rule",
+    "token bucket rules",
+    "token bucket trick"
+   ]
+  },
+  {
+   "use": "rate limiting",
+   "never_say": [
+    "rate blocking"
+   ]
+  },
+  {
+   "use": "429 Too Many Requests",
+   "never_say": []
+  },
+  {
+   "use": "Retry-After header",
+   "never_say": []
+  }
+ ],
+ "counts": {},
+ "rehook": {
+  "line": 5,
+  "payoff_line": 6
+ },
+ "illustrative_numbers": [
+  "3",
+  "4",
+  "0"
+ ],
+ "claims": [
+  {
+   "say": "A request is rejected when there is no token in the bucket.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request."
+  },
+  {
+   "say": "No token in the bucket? Your request is rejected. (on-screen hook)",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request."
+  },
+  {
+   "say": "That is rate limiting: asking a client to slow down when it sent too many requests in a given amount of time.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
+  },
+  {
+   "say": "Stripe uses rate limiters on its API (note on screen; blog title 'Scaling your API with rate limiters').",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "Scaling your API with rate limiters (title). We use the token bucket algorithm to do rate limiting."
+  },
+  {
+   "say": "Stripe uses the token bucket algorithm to do rate limiting.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "We use the token bucket algorithm to do rate limiting."
+  },
+  {
+   "say": "Every Stripe user has a bucket, and each request removes one token.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "In our case, every Stripe user has a bucket, and every time they make a request we remove a token from that bucket."
+  },
+  {
+   "say": "Each request removes one token from the bucket. (scene label)",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "In our case, every Stripe user has a bucket, and every time they make a request we remove a token from that bucket."
+  },
+  {
+   "say": "The server asks a client to slow down when it sends too many requests in a given amount of time. (scene label)",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
+  },
+  {
+   "say": "The 4th request finds the bucket empty, so it is rejected (worked example).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request."
+  },
+  {
+   "say": "Tokens are added to the bucket at a steady rate.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "You can specify a throttling rate, which is the rate, in requests per second, that tokens are added to the token bucket. You can also specify a throttling burst, which is the capacity of the token bucket."
+  },
+  {
+   "say": "The user can send requests again as the bucket refills (tokens are dripped back in).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "slowly drip more tokens into the bucket"
+  },
+  {
+   "say": "The rejected request can get a 429 Too Many Requests response.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "When request submissions exceed the steady-state request rate and burst limits, API Gateway begins to throttle requests. Clients may receive 429 Too Many Requests error responses at this point."
+  },
+  {
+   "say": "A Retry-After header can say how long to wait.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After",
+   "quote": "In a 429 Too Many Requests response, this indicates how long to wait before making a new request."
+  },
+  {
+   "say": "HTTP status code 429 (scene note).",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code"
+  },
+  {
+   "say": "A token counts for a request.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "API Gateway throttles requests to your API using the token bucket algorithm, where a token counts for a request."
+  },
+  {
+   "say": "With a token bucket, an empty bucket is how an API says slow down (the request is rejected and the client is asked to slow down).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request. (Stripe) / This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\". (MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429)"
+  },
+  {
+   "say": "The first 3 requests each take a token.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "every time they make a request we remove a token from that bucket."
+  },
+  {
+   "say": "0 tokens left does not mean you are blocked for good.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "slowly drip more tokens into the bucket"
+  },
+  {
+   "say": "The rejected request can get this response (scene title).",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "Clients may receive 429 Too Many Requests error responses at this point."
+  }
+ ]
+}

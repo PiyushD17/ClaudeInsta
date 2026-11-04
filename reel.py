@@ -254,12 +254,17 @@ def sc_approval(d, u, a, sc):
     d.text((W / 2, 1090), "Illustration", font=REG(26), fill=A(MUTED, a), anchor="mm")
 
 def sc_cta(d, u, a, sc):
-    v = ease(fade(u, 0.2, 0.8))
+    v = ease(fade(u, 0.0, 0.5))
     d.text((W / 2, 600), sc["big"], font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
-    d.text((W / 2, 720), sc["sub"], font=MED(44), fill=A(MUTED, a * v), anchor="mm")
+    for i, ln in enumerate(wrap(d, sc["sub"], MED(44), 860)):
+        d.text((W / 2, 720 + i * 58), ln, font=MED(44), fill=A(MUTED, a * v), anchor="mm")
     c = ease(fade(u, 3.4, 4.0)) * a
-    d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70), fill=A(TEXT, c), anchor="mm")
-    d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
+    if sc.get("follow_first"):   # reads as one sentence: "Follow" / "for one tech topic a day."
+        d.text((W / 2, 930 + (1 - c) * 24), "Follow", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
+        d.text((W / 2, 1050 + (1 - c) * 24), sc.get("line", "for one tech topic a day."), font=BOLD(60), fill=A(TEXT, c), anchor="mm")
+    else:
+        d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70), fill=A(TEXT, c), anchor="mm")
+        d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
 
 
 def sc_bars(d, u, a, sc):
@@ -468,7 +473,65 @@ def sc_stat(d, u, a, sc):
     if sc.get("note"):
         d.text((W / 2, 1300), sc["note"], font=REG(28), fill=A(MUTED, k), anchor="mm")
 
-SCENES = {"hook": sc_hook, "flow": sc_flow, "pills": sc_pills, "approval": sc_approval, "cta": sc_cta, "bars": sc_bars, "lane": sc_lane, "scan": sc_scan, "lookup": sc_lookup, "tree": sc_tree, "writes": sc_writes, "steps": sc_steps, "versus": sc_versus, "stat": sc_stat}
+def sc_bucket(d, u, a, sc):
+    """Token bucket. modes: 'full' (tokens shown), 'requests' (N requests arrive; each takes a token, extras are rejected),
+    'empty' (empty bucket, pulsing), 'refill' (tokens return one by one)."""
+    title(d, a, sc["title"])
+    cap, mode = sc.get("capacity", 3), sc["mode"]
+    bx0, bx1, by0, by1 = 270, 810, 600, 860
+    k = ease(fade(u, 0.1, 0.5)) * a
+    d.rounded_rectangle([bx0, by0, bx1, by1], radius=40, fill=A(PANEL, k), outline=A(AMBER, k), width=5)
+    d.text((W / 2, by0 - 40), sc.get("bucket_label", "Bucket"), font=BOLD(40), fill=A(AMBER, k), anchor="mm")
+    cy = by0 + 130
+    xs = [W / 2 + (i - (cap - 1) / 2) * 160 for i in range(cap)]
+    gap = sc.get("refill_gap", 1.0) if mode == "refill" else 1.5
+    n_req = sc.get("requests", 0)
+    taken = 0
+    if mode == "requests":
+        for r in range(n_req):
+            t0 = 0.8 + gap * r
+            p = ease(fade(u, t0, t0 + 0.7))
+            if p <= 0: continue
+            lab = "Request " + str(r + 1)
+            if r < cap:                      # flies into the bucket and takes a token
+                if p >= 1: taken += 1; continue
+                cx, cyy = xs[r], 1120 + (cy - 1120) * p
+                d.rounded_rectangle([cx - 70, cyy - 34, cx + 70, cyy + 34], radius=14, fill=A(AMBER, a))
+                d.text((cx, cyy), lab, font=BOLD(26), fill=A((10, 14, 24), a), anchor="mm")
+            else:                            # bounces off the empty bucket and is rejected
+                bad = ease(fade(u, t0 + 0.7, t0 + 1.0))
+                cyy = 1120 + (1010 - 1120) * p
+                cx = W / 2 + (16 * math.sin(u * 40) * bad if bad < 1 else 0)
+                col = mix(AMBER, (255, 110, 100), bad)
+                d.rounded_rectangle([cx - 90, cyy - 34, cx + 90, cyy + 34], radius=14, fill=A(col, a))
+                d.text((cx, cyy), lab, font=BOLD(28), fill=A((10, 14, 24), a), anchor="mm")
+                if bad > 0:
+                    d.text((W / 2, 1090), "Rejected: the bucket is empty.", font=BOLD(46), fill=A((255, 120, 110), bad * a), anchor="mm")
+    if mode == "requests": tok_n = cap - taken
+    elif mode == "empty": tok_n = 0
+    elif mode == "refill": tok_n = min(cap, int(max(0, u - 0.8) / gap) + 1) if u >= 0.8 else 0
+    else: tok_n = cap
+    pulse = 0.5 + 0.5 * math.sin(u * 6) if mode == "empty" else 1
+    for i in range(cap):
+        cx = xs[i]
+        if i < tok_n:
+            tk = ease(fade(u, 0.8 + gap * i, 1.2 + gap * i)) if mode == "refill" else 1.0
+            d.ellipse([cx - 52, cy - 52, cx + 52, cy + 52], fill=A(MINT, a * k * tk), outline=A(TEXT, a * k * tk), width=3)
+            d.text((cx, cy), "1", font=BOLD(46), fill=A((10, 14, 24), a * k * tk), anchor="mm")
+        else:
+            d.ellipse([cx - 52, cy - 52, cx + 52, cy + 52], outline=A(MUTED, a * k * (0.35 + 0.65 * pulse)), width=3)
+    if mode != "requests":
+        d.text((W / 2, 960), f"Tokens left: {tok_n}", font=BOLD(62), fill=A(MINT if tok_n else (255, 120, 110), a), anchor="mm")
+    else:
+        d.text((W / 2, 925), f"Tokens left: {tok_n}", font=BOLD(54), fill=A(MINT if tok_n else (255, 120, 110), a), anchor="mm")
+    if sc.get("sub"):
+        s = ease(fade(u, sc.get("sub_at", 1.0), sc.get("sub_at", 1.0) + 0.5)) * a
+        for i, ln in enumerate(wrap(d, sc["sub"], MED(40), 860)):
+            d.text((W / 2, 1090 + i * 54), ln, font=MED(40), fill=A(TEXT, s), anchor="mm")
+    if sc.get("note"):
+        d.text((W / 2, 1400), sc["note"], font=REG(28), fill=A(MUTED, a), anchor="mm")
+
+SCENES = {"bucket": sc_bucket, "hook": sc_hook, "flow": sc_flow, "pills": sc_pills, "approval": sc_approval, "cta": sc_cta, "bars": sc_bars, "lane": sc_lane, "scan": sc_scan, "lookup": sc_lookup, "tree": sc_tree, "writes": sc_writes, "steps": sc_steps, "versus": sc_versus, "stat": sc_stat}
 
 def scene_bounds():
     starts = [max(0.0, l[1] - 0.3) if i else 0.0 for i, l in enumerate(SPEC["lines"])]
