@@ -488,7 +488,7 @@ def sc_bucket(d, u, a, sc):
     xs = [W / 2 + (i - (cap - 1) / 2) * 160 for i in range(cap)]
     gap = sc.get("refill_gap", 1.0) if mode == "refill" else 1.5
     n_req = sc.get("requests", 0)
-    taken = 0
+    landed = set()
     if mode == "requests":
         for r in range(n_req):
             t0 = 0.8 + gap * r
@@ -496,7 +496,7 @@ def sc_bucket(d, u, a, sc):
             if p <= 0: continue
             lab = "Request " + str(r + 1)
             if r < cap:                      # flies into the bucket and takes a token
-                if p >= 1: taken += 1; continue
+                if p >= 1: landed.add(r); continue
                 cx, cyy = xs[r], 1120 + (cy - 1120) * p
                 d.rounded_rectangle([cx - 70, cyy - 34, cx + 70, cyy + 34], radius=14, fill=A(AMBER, a))
                 d.text((cx, cyy), lab, font=BOLD(26), fill=A((10, 14, 24), a), anchor="mm")
@@ -509,14 +509,15 @@ def sc_bucket(d, u, a, sc):
                 d.text((cx, cyy), lab, font=BOLD(28), fill=A((10, 14, 24), a), anchor="mm")
                 if bad > 0:
                     d.text((W / 2, 1090), "Rejected: the bucket is empty.", font=BOLD(46), fill=A((255, 120, 110), bad * a), anchor="mm")
-    if mode == "requests": tok_n = cap - taken
+    if mode == "requests": tok_n = cap - len(landed)
     elif mode == "empty": tok_n = 0
     elif mode == "refill": tok_n = min(cap, int(max(0, u - 0.8) / gap) + 1) if u >= 0.8 else 0
     else: tok_n = cap
     pulse = 0.5 + 0.5 * math.sin(u * 6) if mode == "empty" else 1
     for i in range(cap):
         cx = xs[i]
-        if i < tok_n:
+        shown = (i not in landed) if mode == "requests" else (i < tok_n)   # request r consumes the token it lands on
+        if shown:
             tk = ease(fade(u, 0.8 + gap * i, 1.2 + gap * i)) if mode == "refill" else 1.0
             d.ellipse([cx - 52, cy - 52, cx + 52, cy + 52], fill=A(MINT, a * k * tk), outline=A(TEXT, a * k * tk), width=3)
             d.text((cx, cy), "1", font=BOLD(46), fill=A((10, 14, 24), a * k * tk), anchor="mm")
