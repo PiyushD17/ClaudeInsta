@@ -47,11 +47,12 @@ Page name: Tech in a Bite (handle @techinabite). Header tag on every video is "@
 developers, engineers and managers, plus cloud, databases, solution architecture and system design. Profile picture: `python avatar.py "TECH IN A" "BITE" out/avatar.png ""`.
 
 ## Writing rule for ALL on-screen text and scripts (set by the user, non-negotiable)
-Everything written in a video must be clean, complete and understandable on its own. No half measures:
-- Use complete sentences or clear, self-explaining labels. Never clipped fragments ("One row. Ten million.").
+Everything written in a video must be clean, complete and understandable on its own. "Complete" means the CONTEXT is complete: a stranger must always know what is being talked about. It does NOT mean every line must be a grammatical sentence. No half measures:
+- Short, punchy, even fragmentary lines are allowed (and good for hooks) when the context is complete, for example "Your API request costs 1 token. No tokens, no entry." or "1 row in 10 million records". The subject must be named in the line itself or in the line directly before it.
+- Never use clipped fragments that name no subject or unit ("One row. Ten million." says nothing: one row of what?). Fix those by adding the missing context, not by padding into a long sentence.
 - Spell numbers and units so they make sense alone ("1 row in 10 million records", not "One row. Ten million.").
 - Titles must fit on screen (they wrap to two lines automatically); shorten wording instead of cutting words off.
-- Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?", rewrite it.
+- Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?" or "what are we talking about?", add the missing context. Do not rewrite a punchy line into a long sentence if the context is already clear.
 - Scripts tell a story (hook question, problem, fix, catch, takeaway), not a list of facts.
 
 ## Accuracy rules (set by the owner after the Day 05 mistakes)

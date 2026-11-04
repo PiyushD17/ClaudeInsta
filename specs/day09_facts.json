@@ -35,17 +35,7 @@
  ],
  "claims": [
   {
-   "say": "A request is rejected when there is no token in the bucket.",
-   "source": "https://stripe.com/blog/rate-limiters",
-   "quote": "If the bucket is empty, reject the request."
-  },
-  {
-   "say": "No token in the bucket? Your request is rejected. (on-screen hook)",
-   "source": "https://stripe.com/blog/rate-limiters",
-   "quote": "If the bucket is empty, reject the request."
-  },
-  {
-   "say": "That is rate limiting: asking a client to slow down when it sent too many requests in a given amount of time.",
+   "say": "Behind it is rate limiting: asking a client to slow down when it sent too many requests in a given amount of time.",
    "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
    "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
   },
@@ -82,7 +72,7 @@
   {
    "say": "Tokens are added to the bucket at a steady rate.",
    "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
-   "quote": "You can specify a throttling rate, which is the rate, in requests per second, that tokens are added to the token bucket. You can also specify a throttling burst, which is the capacity of the token bucket."
+   "quote": "You can specify a throttling rate, which is the rate, in requests per second, that tokens are added to the token bucket. You can also specify a throttling burst, which is the capacity of the token bucket. ... When request submissions exceed the steady-state request rate and burst limits, API Gateway begins to throttle requests."
   },
   {
    "say": "The user can send requests again as the bucket refills (tokens are dripped back in).",
@@ -90,7 +80,7 @@
    "quote": "slowly drip more tokens into the bucket"
   },
   {
-   "say": "The rejected request can get a 429 Too Many Requests response.",
+   "say": "An API using a token bucket can answer a rejected request with 429 Too Many Requests.",
    "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
    "quote": "When request submissions exceed the steady-state request rate and burst limits, API Gateway begins to throttle requests. Clients may receive 429 Too Many Requests error responses at this point."
   },
@@ -110,9 +100,9 @@
    "quote": "API Gateway throttles requests to your API using the token bucket algorithm, where a token counts for a request."
   },
   {
-   "say": "With a token bucket, an empty bucket is how an API says slow down (the request is rejected and the client is asked to slow down).",
+   "say": "With Stripe's token bucket, an empty bucket means the API rejects the request.",
    "source": "https://stripe.com/blog/rate-limiters",
-   "quote": "If the bucket is empty, reject the request. (Stripe) / This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\". (MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429)"
+   "quote": "If the bucket is empty, reject the request."
   },
   {
    "say": "The first 3 requests each take a token.",
@@ -125,9 +115,20 @@
    "quote": "slowly drip more tokens into the bucket"
   },
   {
-   "say": "The rejected request can get this response (scene title).",
+   "say": "A rejected request can get this response (scene title).",
    "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
    "quote": "Clients may receive 429 Too Many Requests error responses at this point."
+  },
+  {
+   "say": "Your API request costs 1 token (in a token bucket system, a token counts for a request).",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "API Gateway throttles requests to your API using the token bucket algorithm, where a token counts for a request."
+  },
+  {
+   "say": "No tokens, no entry: with no tokens in the bucket the request is rejected ('entry' is figurative; the source word is reject).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request."
   }
- ]
+ ],
+ "editorial_note": "Opening hook 'Your API request costs 1 token. No tokens, no entry.' was chosen by the owner. It is one step more general than the sources (true of token bucket APIs); scene 3 scopes it to Stripe's token bucket and 'entry' is figurative for the source word 'reject'."
 }

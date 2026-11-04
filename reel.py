@@ -255,9 +255,11 @@ def sc_approval(d, u, a, sc):
 
 def sc_cta(d, u, a, sc):
     v = ease(fade(u, 0.0, 0.5))
-    d.text((W / 2, 600), sc["big"], font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
+    bl = wrap(d, sc["big"], BOLD(sc.get("size", 120)), 900)
+    for i, ln in enumerate(bl):
+        d.text((W / 2, 600 - (len(bl) - 1) * 50 + i * 100), ln, font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
     for i, ln in enumerate(wrap(d, sc["sub"], MED(44), 860)):
-        d.text((W / 2, 720 + i * 58), ln, font=MED(44), fill=A(MUTED, a * v), anchor="mm")
+        d.text((W / 2, 720 + (len(bl) - 1) * 50 + i * 58), ln, font=MED(44), fill=A(MUTED, a * v), anchor="mm")
     c = ease(fade(u, 3.4, 4.0)) * a
     if sc.get("follow_first"):   # reads as one sentence: "Follow" / "for one tech topic a day."
         d.text((W / 2, 930 + (1 - c) * 24), "Follow", font=BOLD(112), fill=A(AMBER, c), anchor="mm")

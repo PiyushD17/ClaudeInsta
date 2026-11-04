@@ -37,7 +37,7 @@ A video is only worth delivering if people stay past the first three seconds. Th
 
 **Hook gate (do not skip, do not shortcut):**
 1. Read `skills/ig-reel/hooks.json` (26 formulas). Write at least 6 candidate opening lines, each from a DIFFERENT formula.
-   Each must be 5 to 12 words (spoken in about 3 seconds), contain something concrete (a number, a named thing or a clear stake from
+   Each must be 5 to 12 words (spoken in about 3 seconds), name its subject so a stranger knows what it is about (open with the thing, for example "Your API request ...", before the punch), contain something concrete (a number, a named thing or a clear stake from
    the verified sources), put the payload at the front, speak straight to the viewer, and be TRUE. No fabricated numbers, no fake
    "nobody knows" claims you cannot defend, no promises the video does not deliver.
 2. Put the candidates in `out/dayNN_hooks.txt` (one per line) and run `python3 skills/ig-reel/hookscore.py out/dayNN_hooks.txt`.
@@ -75,8 +75,10 @@ Structure: hook, delay #1 (problem and setup, answer withheld), REHOOK, delay #2
 - Do not pad. Cut any sentence that does not move the explanation forward.
 
 **Then write the script** on the winning hook: plain spoken language, contractions, short lines, run it through ig-human.
-- Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule is stricter: every on-screen
-  string must be a clean, complete, self-explaining sentence or label. Never clipped fragments.
+- Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule: every on-screen
+  string and spoken line must have complete CONTEXT, so a stranger knows what is being talked about (see CLAUDE.md writing rule). Punchy, fragmentary
+  lines are allowed when the subject is named in the line or the line right before it (for example "Your API request costs 1 token. No tokens, no entry.").
+  Never use fragments that name no subject or unit ("One row. Ten million.").
 - Shape: hook, the problem (delay #1), rehook, the build-up (delay #2), the answer, one takeaway, then exactly: "Follow for one tech topic a day."
 - Length: 100 to 190 words (about 30 to 60 seconds at 3.2 words/second) and at most about 950 characters, because the voiceover
   uses limited free credits. No greeting, no "in this video".
