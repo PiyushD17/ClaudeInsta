@@ -66,6 +66,17 @@ Structure: hook, delay #1 (problem and setup, answer withheld), REHOOK, delay #2
 5. Give the rehook scene a visible change on screen (a new scene type, a highlighted word or a flip) so viewers notice the second hook.
 6. Record it in the facts file: `"rehook": {"line": N, "payoff_line": M}` (1-based script lines). `check_spec.py` verifies position, payoff order and re-scores the line.
 
+**Reach gates (mandatory; they target what Instagram rewards: finishing, replaying, sending). The chart the owner uses: skip in 3 s = red, watch then leave = blue,
+finish / replay / send = green.**
+1. *Send-or-save line.* Exactly one script line (not the hook, not the closing line) must be worth sending to a specific person or saving: a rule of thumb, a
+   "this is the bug your team has" moment, a number to remember. Pick who would send it ("a dev whose API gets rate limited") and why. Record
+   `"share": {"line": N, "who": "...", "why": "..."}` in the facts file. It must be true and sourced like everything else. The closing line stays exactly "Follow for one tech topic a day."
+2. *Replay design.* The last line before the closing call to action must reuse a word from the hook AND change how the hook reads on a second watch (the answer to the
+   hook, turned into the lesson). Record `"replay": {"echo": "<word>", "twist": "..."}`. check_spec.py fails if the echo word is missing from the first and last lines.
+3. *Length target.* Aim for 35 to 45 seconds (about 105 to 135 words). check_spec.py warns above 150 words or 50 s. Over 50 s needs a one-line reason in the summary
+   (for example "two sources needed to make the example clear"). Never pad to reach a length either.
+4. The reviewer (section 4b) also checks: is there a clear send/save line, does the ending recontextualise the hook, is anything cuttable.
+
 **Engagement gate (also mandatory):**
 - Run `python3 skills/ig-reel/beats.py script.txt --target <seconds> --wpm 190` and fix every flag it raises (hook too long, a beat that drags,
   a stretch with nothing concrete, no loop). Re-run until clean.
@@ -80,7 +91,7 @@ Structure: hook, delay #1 (problem and setup, answer withheld), REHOOK, delay #2
   lines are allowed when the subject is named in the line or the line right before it (for example "Your API request costs 1 token. No tokens, no entry.").
   Never use fragments that name no subject or unit ("One row. Ten million.").
 - Shape: hook, the problem (delay #1), rehook, the build-up (delay #2), the answer, one takeaway, then exactly: "Follow for one tech topic a day."
-- Length: 100 to 190 words (about 30 to 60 seconds at 3.2 words/second) and at most about 950 characters, because the voiceover
+- Length: aim for 105 to 135 words (35 to 45 seconds); hard limits 100 to 190 words (30 to 60 s at 3.2 words/second) and at most about 950 characters, because the voiceover
   uses limited free credits. No greeting, no "in this video".
 - Explain one idea only. Use a concrete example or analogy. Say what it costs or where it breaks, not only why it is great.
 
@@ -131,7 +142,8 @@ Do not give it your drafting notes. Ask it to:
 3. Walk through every worked example step by step (for instance "visitor 4 with 3 servers goes to server 1") and write the result. Confirm the pictures
    in the contact sheet show the same example, and that counts match ("3 servers" shows exactly three).
 4. Check technical accuracy against general knowledge and the quotes: is anything oversimplified until it is wrong, or presented as universal when it is only common?
-5. Reply PASS, or a numbered list of problems with the exact fix for each.
+5. Reach check: name the send-or-save line and who would send it, say how the last line changes the hook on a second watch, and name any sentence that could be cut without losing the story.
+6. Reply PASS, or a numbered list of problems with the exact fix for each.
 Apply every fix, re-run `check_spec.py`, re-render, and send it back to the reviewer. Up to 3 rounds. If the Agent tool is not available, do the same review yourself as a
 separate written pass (a table of sentence, quote, verdict) and say in the summary that the review was not independent.
 **Stop rule:** if problems remain after 3 rounds, or a fact cannot be supported by a quote, do NOT deliver a video. Send one message that lists the open problems and
@@ -152,13 +164,19 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked); `out/dayNN_rehooks.txt` likewise for the rehook
 - `out/dayNN_sources.md`: each source as a link with what it supports, plus the claim table (what the video says, source link, quote)
 - `out/dayNN_check.md`: the checker report and the reviewer's verdict
-Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), the rehook with its score, how many hook and rehook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
+Then send one SendUserMessage: topic, length in seconds (with a reason if over 50 s), the send-or-save line and who it is for, the replay twist, the final hook with its hookscore (and the runner-up scores), the rehook with its score, how many hook and rehook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
 The summary must be readable on its own.
 
 ## 7. Update the log
 Add a row to the topics log document (Day, date, topic, pillar, hook, sources, status "Video made") using the Claude Docs tools if available.
 Also append the topic to the "Covered so far" line in memory (/areas/social-media-page.md) if memory tools are available.
 If neither works, say so in the summary and list the row to add by hand.
+
+## 8. Results log (the owner fills it, the run reads it)
+The topics log document has a "Results" table (Day, views, average watch time, finished %, replays, sends, saves, notes). The owner pastes numbers from Instagram Insights
+a few days after posting. At the start of each run, read it (if any rows are filled) and say in the summary which hook formula, rehook pattern, length and send-line type
+did best and worst so far (only with at least 3 rows; otherwise say there is not enough data). Bias the next hook formulas toward the winners but never skip the gates. Never invent numbers.
+The repo copy is `results_log.md`.
 
 ## Quality gates (do not deliver if any fails)
 - Hook: final spoken hook and on-screen hook score STRONG (70+) on hookscore.py, or the summary starts with "HOOK BELOW TARGET" after 5 rounds.
@@ -168,6 +186,7 @@ If neither works, say so in the summary and list the row to add by hand.
 - `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
 - Mascot present and never covering text or diagrams (`check_spec.py` reports no MASCOT_ZONE or MASCOT_OVERLAP FAIL).
 - One consistent worked example across all scenes; counts in text match what the pictures show.
+- Reach: one send-or-save line and a replay twist recorded in the facts file; target 35-45 s (over 50 s needs a reason).
 - Duration 30-60 s; script 100-190 words; ends with the closing line.
 - All on-screen text complete and fitting on screen; nothing in the top 230 px or bottom 480 px of the frame.
 - Topic not already in the log. Brand text says "Tech in a Bite", never a length like "in 25 seconds".

@@ -27,6 +27,11 @@ Score it with `python3 rehookscore.py`: PASS is overall 60+ and every component 
 Every video's hook must score STRONG (70+) on `skills/ig-reel/hookscore.py` before rendering. If the first batch of hooks scores lower, write new hooks
 and score again (up to 5 rounds) instead of rendering a weak opening. See RUN_DAILY.md section 3. Engagement matters as much as accuracy.
 
+## Reach signals (what Instagram rewards)
+Skipping in the first 3 seconds hurts; finishing, replaying and sending help. So every video has: a hook that names its subject and scores 70+, a rehook, one line worth
+sending or saving, a last line that makes the hook land differently on a second watch, and a target length of 35 to 45 seconds. See RUN_DAILY.md section 3 (reach gates)
+and section 8 (results log). Nobody can guarantee reach; the results log is how we learn what works.
+
 ## Mascot
 The page mascot is `assets/mascot.png` (owner-approved; a smiling chat-bubble chip with a bite taken out). Every video shows it via the spec's `"mascot"` key (see RUN_DAILY.md section 4). It never moves its mouth, never covers text, and stays inside the safe zone.
 
