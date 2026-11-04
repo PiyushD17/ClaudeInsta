@@ -120,7 +120,7 @@
    "quote": "If the bucket is empty, reject the request. ... slowly drip more tokens into the bucket"
   },
   {
-   "say": "Slow down (scene 2 big value): the server asks a client to slow down.",
+   "say": "Too many requests (scene 2 big value): the API server asks a client to slow down when it sends too many requests.",
    "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
    "quote": "This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
   }
@@ -135,5 +135,10 @@
   "echo": "entry",
   "twist": "On a second watch 'No tokens, no entry' reads as 'no entry yet': the last line says it only lasts until the bucket refills."
  },
- "length_reason": "About 143 words (49 s): the worked example (3 tokens, 4 requests) needs its own beat so the refill payoff lands."
+ "length_reason": "About 143 words (49 s): the worked example (3 tokens, 4 requests) needs its own beat so the refill payoff lands.",
+ "topic_terms": [
+  "API",
+  "token bucket",
+  "rate limit"
+ ]
 }

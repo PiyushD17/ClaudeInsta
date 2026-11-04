@@ -125,13 +125,14 @@ different example numbers in different scenes, script/scene mismatch). WARN line
    `check_spec.py` fails on any overlap, so fix those by moving the mascot first and only hide it when no free spot exists.
 5. Safe zone: keep everything between y=230 and y=1440 on the 1080x1920 frame (the template already does).
 6. Render: `python3 build.py specs/dayNN_<slug>.py` creates `out/dayNN_<slug>.mp4` (with music), `_silent.mp4` and `_bgm.wav`.
-7. Check: `ffprobe` duration must be 30 to 60 seconds. Render preview frames of every scene (for example with
+7. Frame test: look at the contact sheet one frame at a time. Each frame alone must (a) name the topic in its own words (title or label, not only the hook) and (b) be understandable with no other frame and no audio. Bare slogans ("Slow down") fail. Add `"topic_terms": [...]` to the facts file; check_spec.py fails any scene that shows none of them.
+8a. Check: `ffprobe` duration must be 30 to 60 seconds. Render preview frames of every scene (for example with
    `reel.load_spec` and `reel.frame(t)` in a short script) and look at them. Fix any overflow, overlap or cut-off text.
    Read every on-screen string aloud as a stranger would; rewrite anything that raises "what does that mean?".
 8. Check the rendered file itself, not only the spec:
    `python3 check_spec.py specs/dayNN_slug.py --facts specs/dayNN_facts.json --video out/dayNN_slug_silent.mp4 --sheet out/dayNN_sheet.png --report out/dayNN_check.md`
    It re-checks the script and every on-screen string, then inspects the video: duration, content outside the Instagram safe zone, and dead or blank
-   screens (FAIL at 0.5 s or more, WARN at 0.2 s or more). Fix and re-render until there is no FAIL.
+   screens (FAIL at 0.5 s or more, WARN at 0.2 s or more). Fix and re-render until there is no FAIL and no WARN (zero warnings is the target; INFO length notes covered by `length_reason` are fine).
 
 ## 4b. Reviewer pass (mandatory, independent)
 The person who wrote the video must not be the only one to check it. Start a fresh reviewer with the Agent tool (general-purpose). Give it ONLY:
@@ -183,7 +184,7 @@ The repo copy is `results_log.md`.
 - Rehook: one rehook in the middle (25-65% of the script) that passes `rehookscore.py` (60+, every part 40+) or the summary starts with "REHOOK BELOW TARGET"; it is answered later and the answer arrives by about 80%.
 - Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
 - Every fact traced to an opened source, with a quote in the claim table. Key terms exactly as the sources write them; no look-alike words.
-- `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
+- `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL and 0 WARN, every frame stands alone and names the topic, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
 - Mascot present and never covering text or diagrams (`check_spec.py` reports no MASCOT_ZONE or MASCOT_OVERLAP FAIL).
 - One consistent worked example across all scenes; counts in text match what the pictures show.
 - Reach: one send-or-save line and a replay twist recorded in the facts file; target 35-45 s (over 50 s needs a reason).

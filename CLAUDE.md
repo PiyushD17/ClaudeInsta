@@ -56,9 +56,13 @@ Everything written in a video must be clean, complete and understandable on its 
 - Short, punchy, even fragmentary lines are allowed (and good for hooks) when the context is complete, for example "Your API request costs 1 token. No tokens, no entry." or "1 row in 10 million records". The subject must be named in the line itself or in the line directly before it.
 - Never use clipped fragments that name no subject or unit ("One row. Ten million." says nothing: one row of what?). Fix those by adding the missing context, not by padding into a long sentence.
 - Spell numbers and units so they make sense alone ("1 row in 10 million records", not "One row. Ten million.").
+- EVERY FRAME STANDS ALONE (owner rule): a viewer who sees only one frame must know what the video is about and understand what the frame says. Each scene must show words that name the topic (the facts file lists `topic_terms`; check_spec.py fails a scene with none) and no label may be a vague headline by itself ("Slow down" says nothing: slow down what?). Write "Too many requests" with a label saying what happens to an API, not a bare slogan.
 - Titles must fit on screen (they wrap to two lines automatically); shorten wording instead of cutting words off.
 - Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?" or "what are we talking about?", add the missing context. Do not rewrite a punchy line into a long sentence if the context is already clear.
 - Scripts tell a story (hook question, problem, fix, catch, takeaway), not a list of facts.
+
+## Zero warnings
+A video ships only with `check_spec.py` reporting 0 FAIL and 0 WARN (INFO length notes covered by a `length_reason` are fine). A warning means a frame, line or number is not good enough yet: fix it instead of accepting it.
 
 ## Accuracy rules (set by the owner after the Day 05 mistakes)
 - Use the exact technical terms the sources use. Never replace a term with a look-alike ("3 rules" for algorithms is wrong).
