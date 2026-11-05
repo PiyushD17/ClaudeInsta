@@ -151,10 +151,13 @@ def text_checks(spec, lines, bounds, facts, legacy):
     chars = len(" ".join(lines))
     if not lines[-1].strip().endswith(CTA):
         add("FAIL", "CTA", f'The last script line must end with exactly: "{CTA}"')
-    if not 100 <= words <= 190:
-        add("FAIL", "WORDS", f"Script has {words} words (needs 100 to 190).")
-    if chars > 1000:
-        add("FAIL", "CHARS", f"Script has {chars} characters (limit about 950).")
+    global STORY
+    story = STORY = spec.get("format") == "story"          # technical deep dive: up to ~150 s, 2000 characters of voiceover credits
+    lo, hi, cmax = (200, 460, 2000) if story else (100, 190, 1000)
+    if not lo <= words <= hi:
+        add("FAIL", "WORDS", f"Script has {words} words (needs {lo} to {hi}).")
+    if chars > cmax:
+        add("FAIL", "CHARS", f"Script has {chars} characters (limit about {cmax - 50}).")
     brand = " ".join(t for _, t in all_texts)
     if re.search(r"tech in (\d+|a) (second|minute)", brand, re.I):
         add("FAIL", "BRAND", 'Brand text must say "Tech in a Bite", never a length.')
@@ -345,14 +348,17 @@ def side_by_side(spec, lines, bounds, onscreen):
     return "\n".join(out)
 
 # ----------------------------------------------------------------------------- video checks
+STORY = False
+
 def video_checks(path, bounds, sheet_path, ignore_boxes=()):
     import numpy as np
     probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
                            capture_output=True, text=True)
     dur = float(probe.stdout.strip() or 0)
-    if not 30 <= dur <= 60:
-        add("FAIL", "DURATION", f"Video is {dur:.1f} s (needs 30 to 60).")
-    elif dur > 50:
+    lo, hi = (60, 150) if STORY else (30, 60)
+    if not lo <= dur <= hi:
+        add("FAIL", "DURATION", f"Video is {dur:.1f} s (needs {lo} to {hi}).")
+    elif dur > 50 and not STORY:
         add("INFO" if LENGTH_REASON else "WARN", "DURATION_LONG", f"Video is {dur:.1f} s. Target 35 to 45 s; over 50 s needs a stated reason in the summary.")
     fps = 10
     raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", path, "-vf", f"fps={fps},scale=270:480", "-f", "rawvideo",

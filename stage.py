@@ -102,7 +102,7 @@ class Obj:
         for t0, dur, e in self.events:
             if e.get("hide") and t >= t0: end = t0 if end is None else min(end, t0)
         if self.fade_out is not None: end = self.fade_out if end is None else min(end, self.fade_out)
-        if end is not None and t >= end: a *= 1 - clamp((t - end) / 0.3)
+        if end is not None and t >= end: a *= 1 - clamp((t - end) / (0.15 if self.fade_out is not None and end == self.fade_out else 0.3))
         return a
 
 _CACHE = {}
@@ -115,7 +115,7 @@ def build(spec, line_starts):
         ls = line_starts[si]
         clear = sc.get("clear")
         for ob in objs:
-            if ob.fade_out is None and (clear is True or (isinstance(clear, list) and ob.id in clear)): ob.fade_out = ls
+            if ob.fade_out is None and (clear is True or (isinstance(clear, list) and ob.id in clear)): ob.fade_out = ls - 0.4   # gone before the new scene's first objects appear
         for o in sc.get("objects", []):
             ob = Obj(spec, si, o, ls); objs.append(ob)
             if ob.id: by_id[ob.id] = ob
