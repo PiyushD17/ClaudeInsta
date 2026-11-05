@@ -1,0 +1,1 @@
+fonts/DejaVuSansMono.ttf and DejaVuSansMono-Bold.ttf: DejaVu fonts (Bitstream Vera derivative), free license (https://dejavu-fonts.github.io/License.html). Used for code panels in carousel posts.

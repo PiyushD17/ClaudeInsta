@@ -13,6 +13,9 @@ pick a new topic, verify every fact from sources opened now, write a story-style
 When the user sends a voice recording later: measure it, retime the spec, then `python3 build.py specs/dayNN_topic.py voice.mp3`
 (music is ducked under the voice) and render once.
 
+## Carousel posts (second daily job)
+Besides the reel, a separate daily job makes an Instagram carousel post: 5-7 slides (1080x1350) that climb from the big picture to a deep dive. Procedure: `RUN_DAILY_POST.md`; tools: `carousel.py`, `carousel_check.py`, `specs/postNN_*`. The same brand, writing, accuracy and reviewer rules apply (every slide stands alone, every fact has a source quote, exact source terms, mascot never covers text). A post never repeats a topic that already has a reel or a post.
+
 ## Hook rules (first 1.5 seconds decide retention)
 - Open with the strongest claim or a question, big text on screen from frame 0, written as a complete thought.
 - Something visibly changes within the first second. The voice starts immediately.
