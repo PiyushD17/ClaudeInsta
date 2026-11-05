@@ -36,4 +36,18 @@ assert "DEEP_DIVE" in out, out                                  # no deep dive f
 num = copy.deepcopy(spec); num["slides"][1]["bullets"] = ["It makes 37 requests per second."]
 rc, out = check(num, facts)
 assert "UNSOURCED_NUMBER" in out, out                           # numbers must come from a quote
-print("OK: carousel renders clean; overflow, missing claims, share, slide count, levels and unsourced numbers are caught.")
+# v2: stage slides (same object engine and layout check as the reels)
+model = carousel.load_spec(os.path.join(root, "specs", "post01_kubernetes_probes.py"))
+paths, errs = carousel.render(model, os.path.join(tmp, "m"))
+assert not errs, errs                                           # the model post renders clean
+ov = copy.deepcopy(model)
+ov["slides"][1]["objects"].append({"kind": "panel", "id": "tiny", "x": 60, "y": 1150, "w": 200, "h": 60, "label": "A label far too long for this little box", "compact": True})
+_, errs = carousel.render(ov, os.path.join(tmp, "o"))
+assert any("TEXT_OVERFLOW" in e for e in errs) and any("OVERLAP" in e for e in errs), errs   # overflow and collisions on a stage slide are caught
+mfacts = json.load(open(os.path.join(root, "specs", "post01_facts.json")))
+rc, out = check(model, mfacts)
+assert rc == 0, out                                             # the model post passes the checker ("four ways" backs the 4)
+old = copy.deepcopy(model); old["slides"][2] = {"type": "text", "level": 1, "label": "KUBERNETES", "title": "Kubernetes probes", "bullets": ["Kubernetes probe one."]}
+rc, out = check(old, mfacts)
+assert "SLIDE_TYPE" in out, out                                 # retired text templates fail for content slides
+print("OK: carousel renders clean; overflow, missing claims, share, slide count, levels, unsourced numbers, stage-slide overflow/overlap and retired slide types are caught.")

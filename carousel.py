@@ -75,10 +75,11 @@ class Canvas:
         """Paragraph with **bold** segments (bold + amber)."""
         lh = lh or int(size * 1.36)
         toks = []                                  # (word, bold, glued_to_previous)
-        for i, part in enumerate(s.split("**")):
+        parts = s.split("**")
+        for i, part in enumerate(parts):
             ws = part.split()
             for j, w in enumerate(ws):
-                glue = (j == 0 and i > 0 and not part.startswith(" ") and bool(toks))
+                glue = (j == 0 and i > 0 and not part.startswith(" ") and not parts[i - 1].endswith(" ") and bool(toks))
                 toks.append((w, i % 2 == 1, glue))
         lines, cur, curw = [], [], 0
         sp = self.d.textlength(" ", font=MED(size))
@@ -120,6 +121,7 @@ def callout(c, y, s, size=34):
     lines = c.wrap(s, BOLD(size), 820)
     h = 40 + int(size * 1.36) * len(lines)
     c.box(X0, y, X1, y + h, fill=(60, 44, 36), outline=AMBER, width=3, radius=24)
+    c.boxes.append((X0, y, X1, y + h, "callout: " + s[:30]))
     c.d.rounded_rectangle([X0, y, X0 + 8, y + h], radius=4, fill=AMBER)
     yy = y + 20
     for ln in lines:
@@ -146,13 +148,18 @@ def chrome(c):
 
 # ----- slide types -----
 def s_cover(c, s):
+    if s.get("objects"):
+        stage_objects(c, s["objects"])
     y = 300
     c.text((X0, y), "TECH IN A BITE  ·  POST", MONOB(28), AMBER); y += 90
     parts = s["title"]
     size = 150
     while size > 70 and max(c.d.textlength(t, font=BOLD(size)) for t, _ in parts) > 920: size -= 6
+    import stage
+    TF = stage.LABEL
+    while size > 70 and max(c.d.textlength(t, font=TF(size)) for t, _ in parts) > 920: size -= 6
     for t, acc in parts:
-        c.text((X0, y), t, BOLD(size), AMBER if acc else TEXT); y += int(size * 1.04)
+        c.text((X0, y), t, TF(size), AMBER if acc else TEXT); y += int(size * 1.08)
     y += 48
     for ln in c.wrap(s["sub"], MED(40), 880):
         c.text((X0, y), ln, MED(40), MUTED); y += 54
@@ -235,7 +242,14 @@ def s_detail(c, s):
     if s.get("callout"): callout(c, y + 10, s["callout"])
 
 def s_takeaway(c, s):
-    label(c, s["label"]); y = title_block(c, s["title"], size=66)
+    if s.get("objects"):
+        stage_objects(c, s["objects"])
+    import stage
+    label(c, s["label"]); y = Y0 + 70
+    f, lines, lh, ok = stage.fit(s["title"], stage.LABEL, 62, 920, maxlines=2)
+    for ln in lines:
+        c.text((X0, y), ln, f, TEXT); y += int(f.size * 1.14)
+    c.d.rounded_rectangle([X0, y + 12, X0 + 90, y + 17], radius=3, fill=AMBER); y += 56
     for p in s["points"]:
         c.d.ellipse([X0, y + 14, X0 + 16, y + 30], fill=MINT)
         y = c.rich(X0 + 44, y, p, 36, 800, bold_fill=MINT) + 18
@@ -244,7 +258,32 @@ def s_takeaway(c, s):
     y += 10
     c.text((X0, y + 70), "Follow", BOLD(96), AMBER); c.text((X0, y + 170), "for one tech topic a day.", BOLD(48), TEXT)
 
-TYPES = {"cover": s_cover, "text": s_text, "cards": s_cards, "flow": s_flow, "compare": s_compare, "detail": s_detail, "takeaway": s_takeaway}
+# ----- stage slides: the same object engine and layout rules as the reels (stage.py, STYLE_GUIDE.md) -----
+SLIDE_ZONE = (60, 200, 1020, 1240)                # content zone of a slide (below the level pill, above the progress bar)
+
+def stage_objects(c, objs, title=None, title_y=232):
+    """Draw stage objects (panels, stores, terminals, pills, ...) on the slide and run the stage layout check on them."""
+    import stage
+    from reel import SoftDraw
+    objs = [dict(o) for o in objs]
+    for k, o in enumerate(objs): o.setdefault("id", f"o{k}")
+    if title:
+        objs.insert(0, {"kind": "title", "id": "_title", "x": W / 2, "y": title_y, "parts": title, "size": c.slide.get("title_size", 52), "maxw": 920})
+    spec = {"pace_wps": 3.2, "lines": ["x"], "scenes": [{"type": "stage", "objects": objs}]}
+    stage._CACHE.clear()
+    stage.render(SoftDraw(c.img), c.img, 60.0, spec, [0.0])
+    stage._CACHE.clear()
+    probs = stage.layout_check(spec, [0.0], 61.0, None, draw_cls=SoftDraw, times=[60.0], zone=SLIDE_ZONE, size=(W, H))
+    for level, code, msg in probs:
+        if code != "STATIC": c.errors.append(f"{code}: {msg}")
+    for b, ob in stage.CHECK.get("all_boxes", []):
+        c.boxes.append((*b, ob.id or ob.kind)); c.ymax = max(c.ymax, b[3])
+
+def s_stage(c, s):
+    """A diagram slide: short heavy title + objects (STYLE_GUIDE.md v2: objects and state, labels 1-4 words, real artefacts)."""
+    stage_objects(c, s["objects"], s.get("title"))
+
+TYPES = {"stage": s_stage, "cover": s_cover, "text": s_text, "cards": s_cards, "flow": s_flow, "compare": s_compare, "detail": s_detail, "takeaway": s_takeaway}
 
 def mascot(c, cfg):
     m = Image.open(os.path.join(HERE, "assets", "mascot.png")).convert("RGBA")
@@ -272,7 +311,8 @@ def render_slide(spec, i):
     c = Canvas(n, total, s)
     chrome(c)
     TYPES[s["type"]](c, s)
-    if c.ymax > Y1 + (300 if s["type"] in ("cover", "takeaway") else 0): c.errors.append(f"content runs to y={int(c.ymax)} (limit {Y1})")
+    limit = Y1 + 25 if s["type"] in ("cover", "takeaway", "stage") else Y1      # nothing may reach the progress bar (y 1262)
+    if c.ymax > limit: c.errors.append(f"content runs to y={int(c.ymax)} (limit {limit})")
     cfg = s.get("mascot", None)
     if cfg is None and s["type"] in ("cover", "takeaway"): cfg = {"x": 890, "y": 1110, "size": 190} if s["type"] == "cover" else {"x": 900, "y": 1130, "size": 170}
     if cfg: mascot(c, cfg)

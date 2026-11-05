@@ -24,7 +24,7 @@ Kinds
   pill     x y text color filled mono size maxw                          rounded chip / value pill centered on (x,y), wraps inside maxw
   terminal x y w h title lines:[{text,color,type,at,hl,flag,flagcolor,check}] size cps   typed commands, real output; each line can wait for its word ("at")
   table    x y w cols:[..] rows:[[..]..] hl(row index) size color           output table (e.g. a CLI listing), columns auto-sized, must fit w
-  store    x y w h label rows:[[key,value],..] hl(row) color                key-value store (counters), values change by events (set rows)
+  store    x y w h label rows:[[key,value(,colour)],..] hl(row) color value_color   key-value store (counters), values change by events (set rows)
   browser  x y w h tab url scheme                                         browser window mock with URL bar
   server   x y w h label color                                            server/rack mock
   bar      x y w h value segs color label right                           segmented bar (disk/usage meter), value tweens
@@ -582,13 +582,14 @@ def draw_obj(d, img, ob, t):
             if not ok: issue(ob, "TEXT_OVERFLOW", f'store label "{p["label"]}" does not fit')
             d.text((hx, y + 36), lines[0], font=f, fill=A(COL["white"], a), anchor="lm")
         fs = p.get("size", 26); f = MONO(fs); yy = y + 72; hl = p.get("hl")
-        for ri, (kk, vv) in enumerate(p.get("rows", [])):
+        for ri, row in enumerate(p.get("rows", [])):
+            kk, vv = row[0], row[1]; vc = col(row[2]) if len(row) > 2 else col(p.get("value_color", "amber"))
             if yy + fs * 1.6 > y + h: issue(ob, "TEXT_OVERFLOW", "store has more rows than fit"); break
             if hl is not None and ri == hl: rr(d, [x + 12, yy - 6, x + w - 12, yy + fs + 10], fill=A(c, 0.22 * a), outline=A(c, a), width=2, radius=8)
             kw = f.getlength(str(kk)); vw = f.getlength(str(vv))
             if kw + vw + 60 > w: issue(ob, "TEXT_OVERFLOW", f'store row "{kk} {vv}" is wider than the store')
             d.text((x + 24, yy), str(kk), font=f, fill=A(COL["gray"], a))
-            rr(d, [x + w - 34 - vw, yy - 4, x + w - 20, yy + fs + 6], fill=A(col(p.get("value_color", "amber")), a), radius=8)
+            rr(d, [x + w - 34 - vw, yy - 4, x + w - 20, yy + fs + 6], fill=A(vc, a), radius=8)
             d.text((x + w - 27 - vw, yy), str(vv), font=MONOB(fs), fill=A(COL["dark"], a))
             yy += fs * 1.75
         box(ob, x, y, x + w, y + h)
@@ -766,7 +767,7 @@ def _inside(a, b, tol=2):
 def _overlap(a, b, pad=4):
     return not (a[2] <= b[0] + pad or b[2] <= a[0] + pad or a[3] <= b[1] + pad or b[3] <= a[1] + pad)
 
-def layout_check(spec, line_starts, dur, mascot_box=None, step=0.25, draw_cls=None):
+def layout_check(spec, line_starts, dur, mascot_box=None, step=0.25, draw_cls=None, times=None, zone=None, size=(W, H)):
     """Render the stage offscreen every `step` seconds and collect layout problems. Returns a list of (level, code, message)."""
     objs = build(spec, line_starts)
     out, seen = [], set()
@@ -775,21 +776,24 @@ def layout_check(spec, line_starts, dur, mascot_box=None, step=0.25, draw_cls=No
         if k not in seen: seen.add(k); out.append((level, code, msg))
     CHECK["on"] = True
     try:
-        img = Image.new("RGB", (W, H), (13, 16, 28))
+        img = Image.new("RGB", size, (13, 16, 28))
         d = draw_cls(img) if draw_cls else ImageDraw.Draw(img, "RGBA")
         last_change, prev_sig = 0.0, None
-        t = 0.0
-        while t < dur:
+        Z = zone or ZONE
+        CHECK["all_boxes"] = []
+        seq = list(times) if times is not None else [i * step for i in range(int(dur / step) + 1)]
+        for t in seq:
             CHECK["issues"] = []
             render(d, img, t, spec, line_starts)
             for code, oid, msg in CHECK["issues"]: add("FAIL", code, f"{oid}: {msg} (at {t:.1f}s)", (code, oid, msg))
             vis = [ob for ob in objs if ob.own_alpha(t) > 0.9 and ob.alpha(t) > 0.9 and id(ob) in CHECK["boxes"]]
+            CHECK["all_boxes"] += [(CHECK["boxes"][id(ob)], ob) for ob in vis]
             for ob in vis:
                 b = CHECK["boxes"][id(ob)]
                 if ob.parent is not None and id(ob.parent) in CHECK["boxes"] and not _inside(b, CHECK["boxes"][id(ob.parent)]):
                     add("FAIL", "OUTSIDE_PARENT", f"{ob.id} sticks out of its box {ob.parent.id} at {t:.1f}s", ("OP", ob.id))
-                if ob.kind not in OVERLAY_KINDS and not (b[0] >= ZONE[0] and b[1] >= ZONE[1] and b[2] <= ZONE[2] and b[3] <= ZONE[3]):
-                    add("FAIL", "OUT_OF_ZONE", f"{ob.id} ({[int(v) for v in b]}) leaves the content zone {ZONE} at {t:.1f}s", ("OZ", ob.id))
+                if ob.kind not in OVERLAY_KINDS and not (b[0] >= Z[0] and b[1] >= Z[1] and b[2] <= Z[2] and b[3] <= Z[3]):
+                    add("FAIL", "OUT_OF_ZONE", f"{ob.id} ({[int(v) for v in b]}) leaves the content zone {Z} at {t:.1f}s", ("OZ", ob.id))
                 if mascot_box and ob.kind not in OVERLAY_KINDS and _overlap(b, mascot_box, 0):
                     add("FAIL", "MASCOT_OVERLAP", f"{ob.id} is under the mascot at {t:.1f}s", ("MO", ob.id))
             for i, a_ in enumerate(vis):
@@ -809,7 +813,6 @@ def layout_check(spec, line_starts, dur, mascot_box=None, step=0.25, draw_cls=No
             if sig != prev_sig: last_change = t
             elif t - last_change > 4.0 and vis: add("WARN", "STATIC", f"nothing on the stage changes between {last_change:.1f}s and {t:.1f}s: add a visible state change", ("ST", round(last_change, 1)))
             prev_sig = sig
-            t += step
     finally:
         CHECK["on"] = False
     # empty boxes and too much text (static properties)

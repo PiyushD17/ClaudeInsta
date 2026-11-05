@@ -10,7 +10,7 @@ One topic, explained at a high level first and then deeper with every swipe, so 
 - Level 2 (slide 4, optionally 5): how it works, step by step.
 - Level 3 (slides 5-6): the deep dive. The concrete detail a practitioner needs: a real command, config, number, trade-off or failure mode, all from sources.
 - Last slide: takeaway, one slide worth sending or saving, and exactly "Follow for one tech topic a day.".
-Each slide adds exactly one new idea and makes the next slide worth swiping to. Never repeat the same point on two slides. Style: `carousel.py` (dark, amber and mint, Inter, mascot on cover and last slide).
+Each slide adds exactly one new idea and makes the next slide worth swiping to. Never repeat the same point on two slides. Style: `carousel.py` + `stage.py` (same object engine as the reels; model post `specs/post01_kubernetes_probes.py`).
 
 ## Depth rules (same standard as the story-format reels; see STYLE_GUIDE.md)
 The audience is mature: it knows the basics and wants to know what goes into building or running the thing. So:
@@ -43,15 +43,17 @@ and score with `python3 skills/ig-reel/hookscore.py out/postNN_hooks.txt`. The b
 The cover `title` is that headline split into 2-4 lines (accent the key line); `sub` completes the thought in one sentence; `chips` say how many slides and "BIG PICTURE TO DEEP DIVE".
 Also write a one-line curiosity gap into slide 2 or 3 that the deep-dive slides pay off.
 
-## 4. Write the slides (specs/postNN_<slug>.py, schema in carousel.py)
-- 5 to 7 slides. Slide 1 `cover`, last slide `takeaway`. Set `"level"` 1, 1, 1, 2, 3, 3 (or similar; never decreasing; slides 1-2 level 1; at least one level 3 slide before the takeaway).
-- Slide types: `text` (3 bullets and a callout), `cards` (2-4 parts), `flow` (2-4 ordered steps), `compare` (two options), `detail` (a monospace panel with a real command, config, formula or table + notes), `takeaway`.
-  Use a different type on neighbouring slides. The deep dive should use `detail` or `compare` with real specifics.
-- Writing rules (CLAUDE.md): complete CONTEXT on every slide; every slide must name the topic in its own words (EVERY SLIDE STANDS ALONE, `topic_terms` in the facts file); no vague slogans; spell out numbers and units; one worked example, identical on every slide; write `**bold**` around the 1-2 words per bullet that matter.
-  Keep each slide under about 60 words: a slide is read in seconds. Short punchy lines are fine when the subject is named.
-- Send-or-save slide: exactly one slide (not the cover) carries a true, sourced rule of thumb, a number to remember or a "this is the bug your team has" moment. Put it in a `callout`, and say in the takeaway `share` line who to send it to.
-- Last slide: `points` (2-3 takeaways that mirror the cover's promise) and `share`. The closing "Follow for one tech topic a day." is drawn automatically.
-- Mascot: shown by default on the cover and the takeaway; the renderer fails if it covers text.
+## 4. Write the slides (specs/postNN_<slug>.py) - v2, same standard as the reels
+COPY THE STRUCTURE OF `specs/post01_kubernetes_probes.py` (the model post). Rules (STYLE_GUIDE.md v2, enforced by `carousel_check.py`):
+- 5 to 7 slides. Slide 1 `cover`, last slide `takeaway`, every slide in between is a `"type": "stage"` slide (the old text/cards/flow/compare/detail templates are retired; the checker FAILS them).
+  Levels 1, 1, 1, 2, 3, 3, 3 (never decreasing; slides 1-2 level 1; at least one level 3 slide before the takeaway).
+- A stage slide = a short heavy title (`"title": [(text, colour), ...]`, at most 9 words) + `"objects"`: the same object kinds as the reels (panel, store, server, terminal, table, pill, label, grid, bar, browser, seq, dots, icon ...; see the docstring of `stage.py`). Content zone x 60-1020, y 200-1240; title at y 232.
+  The screen shows OBJECTS and STATE: boxes that contain things (`"in": parent`), stores with real keys and values, terminals and tables with real commands, YAML and output from the sources, highlighted rows/flags. Labels 1-4 words, never a sentence inside a box; a pill may hold a short rule ("liveness threshold > readiness").
+- Deep slides (level 3) show a real artefact verbatim from an official source (YAML, command and output, header, default value, formula) and one worked number.
+- Text is wrapped inside its box and never smaller than 24 px; the stage layout check FAILS on TEXT_OVERFLOW, OVERLAP, OUTSIDE_PARENT, EMPTY_BOX, OUT_OF_ZONE, TOO_MUCH_TEXT. Fix the layout, never the checker.
+- Writing rules (CLAUDE.md): every slide names the topic (topic_terms) and is understandable alone; exact source terms; invented values labelled "Example"; computed numbers go in `derived_numbers` with how they were computed.
+- Send-or-save slide: exactly one slide (not the cover) carries a true, sourced rule of thumb or number to remember. The takeaway has 2-3 short `points` and a `share` line; "Follow for one tech topic a day." is drawn automatically.
+- Mascot: cover and takeaway only; the renderer fails if it covers text or a box.
 
 ## 5. Facts file (mandatory, before rendering)
 `specs/postNN_facts.json` (schema at the top of `carousel_check.py`): `topic_terms`, `terms` (+ `never_say`), `illustrative_numbers` (every invented number, each labelled "Example" on its slide), `claims` (one per factual sentence and label, each with `source` URL, a `quote` copied from the opened page, and `slides`: the slide numbers it supports) and `share`.

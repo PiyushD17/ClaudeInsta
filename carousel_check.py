@@ -9,6 +9,7 @@ Facts file (JSON), written from sources the run actually opened:
   "topic_terms": ["RAG", "retrieval"],                  # every slide must show at least one, so each slide stands alone
   "terms": [{"use": "vector database", "never_say": ["vector store rule"]}],
   "illustrative_numbers": ["3"],                        # numbers invented for an example (must be labelled "Example" on the slide)
+  "derived_numbers": {"30": "0 + 3 * 10 from the sourced defaults"},   # numbers computed from sourced numbers (say how; the reviewer checks it)
   "claims": [{"say": "...", "source": "https://...", "quote": "copied from the opened page", "slides": [2, 3]}],
   "share": {"slide": 5, "who": "a dev who ...", "why": "..."},     # exactly one slide worth sending or saving (not the cover)
   "saves": "why someone would save it"                  # optional note
@@ -20,10 +21,21 @@ sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, "skills", "ig-re
 import carousel, hookscore as hs
 
 findings = []
+NUMWORDS = {"1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten"}
 def add(level, code, msg): findings.append((level, code, msg))
 SKIP = {"type", "level", "highlight", "mascot", "_tag", "_topic"}
 
 def strings(slide):
+    if slide.get("objects") or slide.get("type") == "stage":
+        import stage
+        out = []
+        if slide.get("title") and slide["type"] == "stage": out.append(("headline", "".join(p[0] for p in slide["title"])))
+        for o in slide.get("objects", []): out += stage.obj_strings(o)
+        rest = {k: v for k, v in slide.items() if k != "objects" and not (slide["type"] == "stage" and k == "title")}
+        return out + strings_plain(rest)
+    return strings_plain(slide)
+
+def strings_plain(slide):
     out = []
     def walk(o, key=""):
         if isinstance(o, dict):
@@ -48,6 +60,9 @@ def main():
     if not 5 <= n <= 7: add("FAIL", "SLIDE_COUNT", f"{n} slides; a post has 5 to 7.")
     if slides[0]["type"] != "cover": add("FAIL", "COVER", "Slide 1 must be the cover.")
     if slides[-1]["type"] != "takeaway": add("FAIL", "TAKEAWAY", "The last slide must be the takeaway (it carries the closing call to action).")
+    for i, s in enumerate(slides[1:-1], start=2):
+        if s["type"] != "stage":
+            add("FAIL", "SLIDE_TYPE", f'Slide {i} is a "{s["type"]}" slide. Content slides are "stage" slides (objects and state, STYLE_GUIDE.md v2); the old text/cards/flow/compare/detail templates are retired.')
     lv = [s.get("level", 1) for s in slides]
     if lv != sorted(lv): add("FAIL", "LEVELS", f"Levels must never go back down: {lv}.")
     if lv[0] != 1 or lv[1] != 1: add("FAIL", "LEVELS", "Slides 1 and 2 must be level 1 (the high-level picture).")
@@ -73,14 +88,19 @@ def main():
                 for bad in term.get("never_say", []):
                     if bad.lower() in t.lower(): add("FAIL", "WRONG_TERM", f'Slide {i + 1}: "{bad}" must be "{term["use"]}".')
             nw = len(t.split())
-            if k not in ("label", "chips", "head", "kicker", "code") and (nw <= 2 and not re.search(r"[\d.?!]", t)):
+            if k == "title" and slides[i]["type"] == "cover": continue      # cover title lines are one headline split over lines
+            if k not in ("label", "chips", "head", "kicker", "code", "object") and (nw <= 2 and not re.search(r"[\d.?!]", t)):
                 add("FAIL", "SHORT_LABEL", f'Slide {i + 1} {k}: "{t}" is too short to stand alone; say what it is.')
         own = [c for c in claims if i + 1 in c.get("slides", [])]
         quotes = " ".join(c.get("quote", "") for c in own)
+        qwords = set(re.findall(r"[a-z]+", quotes.lower()))
+        derived = {str(x) for x in facts.get("derived_numbers", {})}
         for k, t in items:
+            if k == "chips" and re.fullmatch(r"\d+ SLIDES", t): continue
             for num in re.findall(r"\d[\d,.]*", t):
                 num = num.rstrip(".,")
-                if num and num not in quotes and num not in ill:
+                if num in NUMWORDS and NUMWORDS[num] in qwords: continue      # "four ways" in the quote backs a "4" on the slide
+                if num and num not in quotes and num not in ill and num not in derived:
                     add("FAIL", "UNSOURCED_NUMBER", f'Slide {i + 1}: "{num}" (in "{t[:50]}") is in no claim quote of that slide and not in illustrative_numbers.')
         if i > 0 and not own:
             add("FAIL", "NO_CLAIM", f"Slide {i + 1} has no claim (list it in a claim's \"slides\" with source URL and quote).")
