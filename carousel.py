@@ -283,7 +283,101 @@ def s_stage(c, s):
     """A diagram slide: short heavy title + objects (STYLE_GUIDE.md v2: objects and state, labels 1-4 words, real artefacts)."""
     stage_objects(c, s["objects"], s.get("title"))
 
-TYPES = {"stage": s_stage, "cover": s_cover, "text": s_text, "cards": s_cards, "flow": s_flow, "compare": s_compare, "detail": s_detail, "takeaway": s_takeaway}
+# ----- story slides (v3): one chapter per slide, ending on a rehook that pulls the reader to the next swipe -----
+def LORA(size):
+    f = ImageFont.truetype(F + "Lora-Italic-Variable.ttf", int(size)); f.set_variation_by_name("Bold Italic"); return f
+def HEAVY(size): return ImageFont.truetype(F + "InterDisplay-Bold.otf", int(size))
+BODY, BODYB = (205, 211, 224), TEXT
+
+def accent_title(c, parts, y, size=78, maxw=900, maxlines=3):
+    """Title with accent words in an italic serif (amber), the rest in a heavy sans; wraps word by word inside maxw."""
+    while True:
+        words = [(w, acc) for t, acc in parts for w in t.split()]
+        lines, cur, cw = [], [], 0
+        for w, acc in words:
+            f = LORA(size * 1.04) if acc else HEAVY(size); ww = c.d.textlength(w, font=f); sp = c.d.textlength(" ", font=HEAVY(size))
+            if cur and cw + sp + ww > maxw: lines.append(cur); cur, cw = [], 0
+            cw += (sp if cur else 0) + ww; cur.append((w, acc, ww, sp))
+        if cur: lines.append(cur)
+        if len(lines) <= maxlines or size <= 56: break
+        size -= 4
+    if len(lines) > maxlines: c.errors.append("title does not fit on %d lines" % maxlines)
+    for ln in lines:
+        x = X0
+        for i, (w, acc, ww, sp) in enumerate(ln):
+            if i: x += sp
+            c.text((x, y), w, LORA(size * 1.04) if acc else HEAVY(size), AMBER if acc else TEXT); x += ww
+        y += int(size * 1.12)
+    c.d.rounded_rectangle([X0, y + 16, X0 + 90, y + 22], radius=3, fill=AMBER)
+    return y + 60
+
+def ghost_number(c, n):
+    """Huge faint step number behind the title (drawn first, not part of the text layout)."""
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
+    d.text((W - 70, 160), "%02d" % n, font=LORA(400), fill=(255, 190, 60, 22), anchor="ra")
+    c.img.paste(layer, (0, 0), layer)
+
+def hook_box(c, s, bottom=1215):
+    """The rehook: an open loop at the bottom of the slide that the next slide pays off."""
+    size = 36; lines_h = None
+    toks = s
+    f_lines = c.wrap(s.replace("**", ""), MED(size), 800)
+    h = 48 + int(size * 1.36) * len(f_lines)
+    y = bottom - h
+    c.box(X0, y, X1, bottom, fill=(48, 38, 30), outline=(120, 90, 50), width=2, radius=22)
+    c.d.rounded_rectangle([X0, y, X0 + 8, bottom], radius=4, fill=AMBER)
+    c.boxes.append((X0, y, X1, bottom, "hook: " + s[:30]))
+    c.rich(X0 + 40, y + 24, s, size, 800, fill=TEXT, bold_fill=AMBER)
+    return y
+
+def story_cards(c, cards, y):
+    """2-4 concept cards (label, head, text) in a grid; one may be highlighted."""
+    cols = 2; cw = (X1 - X0 - 24) // 2; rows = (len(cards) + 1) // 2; ch = 250
+    for i, cd in enumerate(cards):
+        cx = X0 + (i % cols) * (cw + 24); cy = y + (i // cols) * (ch + 24); hl = cd.get("highlight")
+        col = {"pink": (255, 95, 140), "mint": MINT, "amber": AMBER, "purple": (160, 130, 255), "cyan": (62, 190, 220)}.get(cd.get("color", "amber"), AMBER)
+        c.box(cx, cy, cx + cw, cy + ch, fill=PANEL2 if hl else PANEL, outline=col if hl else EDGE, width=3, radius=24)
+        c.text((cx + 28, cy + 26), cd["label"].upper(), MONOB(22), col)
+        yy = c.para(cx + 28, cy + 66, cd["head"], HEAVY(40), TEXT, cw - 56, 48)
+        c.para(cx + 28, yy + 8, cd["text"], MED(28), BODY, cw - 56, 37)
+        if yy + 8 + 37 * len(c.wrap(cd["text"], MED(28), cw - 56)) > cy + ch - 10: c.errors.append(f'card "{cd["head"]}" text does not fit')
+    return y + rows * (ch + 24)
+
+def s_story(c, s):
+    ghost_number(c, s["step"])
+    c.text((X0, 222), "STEP %02d" % s["step"], MONOB(28), AMBER)
+    y = accent_title(c, s["title"], 272)
+    for b in s.get("bullets", []):
+        c.d.ellipse([X0, y + 16, X0 + 14, y + 30], fill=AMBER)
+        y = c.rich(X0 + 40, y, b, 36, 860, fill=BODY, bold_fill=BODYB) + 22
+    if s.get("cards"): y = story_cards(c, s["cards"], y + 6)
+    if s.get("objects"):
+        stage_objects(c, s["objects"])
+        y = max([y] + [b[3] for b in c.boxes if not str(b[4]).startswith("hook")])
+    if not s.get("hook"):
+        c.errors.append("story slide has no rehook (\"hook\")"); return
+    top = hook_box(c, s["hook"])
+    if y > top - 24: c.errors.append(f"slide content (to y={int(y)}) runs into the rehook box (top y={int(top)})")
+
+def s_cover_story(c, s):
+    """Cover v3: huge stacked headline (accent lines in amber italic serif), a meta row, mascot."""
+    y = 250
+    c.text((X0, y), "TECH IN A BITE", MONOB(28), AMBER); y += 80
+    size = 132
+    while size > 70 and max(c.d.textlength(t, font=(LORA(size) if acc else HEAVY(size))) for t, acc in s["title"]) > 920: size -= 4
+    for t, acc in s["title"]:
+        c.text((X0, y), t, LORA(size * 1.02) if acc else HEAVY(size), AMBER if acc else TEXT); y += int(size * 1.06)
+    y += 40
+    meta = "  ·  ".join(s.get("meta", []))
+    x = X0
+    for ch in meta:
+        c.text((x, y), ch, MONOB(26), AMBER); x += c.d.textlength(ch, font=MONOB(26)) + 4
+    if s.get("sub"):
+        y += 70
+        for ln in c.wrap(s["sub"], MED(36), 700):
+            c.text((X0, y), ln, MED(36), MUTED); y += 48
+
+TYPES = {"story": s_story, "cover_story": s_cover_story, "stage": s_stage, "cover": s_cover, "text": s_text, "cards": s_cards, "flow": s_flow, "compare": s_compare, "detail": s_detail, "takeaway": s_takeaway}
 
 def mascot(c, cfg):
     m = Image.open(os.path.join(HERE, "assets", "mascot.png")).convert("RGBA")
@@ -311,10 +405,10 @@ def render_slide(spec, i):
     c = Canvas(n, total, s)
     chrome(c)
     TYPES[s["type"]](c, s)
-    limit = Y1 + 25 if s["type"] in ("cover", "takeaway", "stage") else Y1      # nothing may reach the progress bar (y 1262)
+    limit = Y1 + 25 if s["type"] in ("cover", "cover_story", "takeaway", "stage", "story") else Y1      # nothing may reach the progress bar (y 1262)
     if c.ymax > limit: c.errors.append(f"content runs to y={int(c.ymax)} (limit {limit})")
     cfg = s.get("mascot", None)
-    if cfg is None and s["type"] in ("cover", "takeaway"): cfg = {"x": 890, "y": 1110, "size": 190} if s["type"] == "cover" else {"x": 900, "y": 1130, "size": 170}
+    if cfg is None and s["type"] in ("cover", "cover_story", "takeaway"): cfg = {"x": 890, "y": 1110, "size": 190} if s["type"] in ("cover", "cover_story") else {"x": 900, "y": 1130, "size": 170}
     if cfg: mascot(c, cfg)
     return c
 

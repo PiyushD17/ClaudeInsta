@@ -4,20 +4,22 @@ You run unattended. The owner wakes up, downloads your files and posts manually.
 plus caption. A post is NOT a reel: it is read, saved and sent, not watched. Read CLAUDE.md first (brand, writing rules, accuracy rules, mascot, reach signals).
 This file only replaces the video-specific parts (voiceover, scenes, music, animation review). Everything else in CLAUDE.md and RUN_DAILY.md section 2 (research) and section 4b (reviewer) applies.
 
-## The idea of the format
-One topic, explained at a high level first and then deeper with every swipe, so a beginner understands slides 1-3 and an engineer still learns something on slides 5-6.
-- Level 1 (slides 1-3): the big picture. What it is, why it exists, the main parts, in plain words.
-- Level 2 (slide 4, optionally 5): how it works, step by step.
-- Level 3 (slides 5-6): the deep dive. The concrete detail a practitioner needs: a real command, config, number, trade-off or failure mode, all from sources.
-- Last slide: takeaway, one slide worth sending or saving, and exactly "Follow for one tech topic a day.".
-Each slide adds exactly one new idea and makes the next slide worth swiping to. Never repeat the same point on two slides. Style: `carousel.py` + `stage.py` (same object engine as the reels; model post `specs/post01_kubernetes_probes.py`).
+## The idea of the format (v3 story carousel, owner feedback Nov 2026)
+People on Instagram are not looking for code. A post is a STORY that unfolds as they swipe: every slide is one chapter that explains one technical concept
+in depth, in words, and ends on a rehook that makes the next swipe necessary. Concepts and mechanisms, never syntax. Model post: `specs/post01_kubernetes_probes.py` (v3).
+- Slide 1 cover (`cover_story`): a huge stacked headline that promises the mechanism with a number or concrete stake, plus a short meta row.
+- Slides 2-6 (`story`): STEP 01, 02, ... One chapter each. Level 1 (the big picture, plain words) -> level 2 (how it works, the numbers) -> level 3 (the deep dive: the failure mode, trade-off or rule a practitioner needs).
+- Every content slide ends with a `hook` box: a question or tension that the NEXT slide pays off ("But what if your app needs 2 minutes just to start?").
+- Last slide: `takeaway` recap (2-3 points), a `share` line, and "Follow for one tech topic a day." (drawn automatically).
+Never repeat the same point on two slides.
 
-## Depth rules (same standard as the story-format reels; see STYLE_GUIDE.md)
-The audience is mature: it knows the basics and wants to know what goes into building or running the thing. So:
-- Level 1 (slides 1-3) stays short and plain, but never opens with a debate or "Stop doing X". The cover promises the mechanism with a number or concrete payoff ("What actually goes into a rate limiter? 4 algorithms, one Redis script.").
-- Levels 2-3 are real mechanism, not summary: every deep slide shows a real command, query, config, header, default value or worked number taken from an official source and quoted verbatim in the facts file (for example `Retry-After: 120`, `INCR` + `EXPIRE` in one Lua `EVAL`, `rate = 42 * ((60-15)/60) + 18 = 49.5`). Use a code block or a worked-calculation block, not a paraphrase.
+## Depth rules (same standard as the story-format reels, explained in words)
+The audience is mature: it knows the basics and wants to know how the thing really behaves. So:
+- The cover never opens with a debate or "Stop doing X". It promises the mechanism ("Why your liveness probe can kill your slow app within 30 seconds").
+- Levels 2-3 are real mechanism, explained in plain words: default values, worked numbers, what the system does step by step, the failure mode and why. All from official sources, quoted verbatim in the facts file.
+- NO CODE: no commands, YAML, JSON, field names in camelCase, terminals or tables on a slide (checker FAIL CODE, WARN CODE_TERM). Say what a setting means ("3 failed checks in a row"), not its name (`failureThreshold: 3`).
 - At least 3 sources opened now; one worked example, identical on every slide; invented values labelled "Example"; one true, sourced trade-off or failure mode on a deep slide.
-- Use the same colour for the same thing on every slide, keep text inside its box and at least 24 px for code, plain bold lettering only (no wavy underlines), generic icons (no brand logos).
+- Every claim must be true as written: "within about 30 s" if the arithmetic is approximate; "the docs example allows 5 minutes", not "the startup probe gives 5 minutes". Hooks must be true too.
 - The reviewer is asked whether a mature engineer learns something real on slides 4-6; if not, the post is rewritten, not shipped.
 
 ## 0. Setup
@@ -40,19 +42,19 @@ only state counts a source states. For the deep-dive slides open the primary doc
 ## 3. Cover hook gate (the cover decides whether anyone swipes)
 Write at least 6 cover headlines from different formulas in `skills/ig-reel/hooks.json`, 5 to 12 words, naming the subject, with a number or named thing, true. Put them in `out/postNN_hooks.txt`
 and score with `python3 skills/ig-reel/hookscore.py out/postNN_hooks.txt`. The best must be STRONG (70+). Otherwise write a new batch, up to 5 rounds; then deliver the best one but start the summary with "HOOK BELOW TARGET".
-The cover `title` is that headline split into 2-4 lines (accent the key line); `sub` completes the thought in one sentence; `chips` say how many slides and "BIG PICTURE TO DEEP DIVE".
-Also write a one-line curiosity gap into slide 2 or 3 that the deep-dive slides pay off.
+The cover `title` is that headline split into 3-5 stacked lines as `[(text, accent), ...]` (accent 1-2 key lines); `meta` is 2-3 short tags (topic name, "3 PROBES", "NO CODE").
+Then write every content slide's rehook (`hook`) and score each with `rehookscore.score()` (the checker does it): PASS is 60+ overall and 40+ per component, at most 18 words, true, paid off by the next slide.
 
-## 4. Write the slides (specs/postNN_<slug>.py) - v2, same standard as the reels
-COPY THE STRUCTURE OF `specs/post01_kubernetes_probes.py` (the model post). Rules (STYLE_GUIDE.md v2, enforced by `carousel_check.py`):
-- 5 to 7 slides. Slide 1 `cover`, last slide `takeaway`, every slide in between is a `"type": "stage"` slide (the old text/cards/flow/compare/detail templates are retired; the checker FAILS them).
-  Levels 1, 1, 1, 2, 3, 3, 3 (never decreasing; slides 1-2 level 1; at least one level 3 slide before the takeaway).
-- A stage slide = a short heavy title (`"title": [(text, colour), ...]`, at most 9 words) + `"objects"`: the same object kinds as the reels (panel, store, server, terminal, table, pill, label, grid, bar, browser, seq, dots, icon ...; see the docstring of `stage.py`). Content zone x 60-1020, y 200-1240; title at y 232.
-  The screen shows OBJECTS and STATE: boxes that contain things (`"in": parent`), stores with real keys and values, terminals and tables with real commands, YAML and output from the sources, highlighted rows/flags. Labels 1-4 words, never a sentence inside a box; a pill may hold a short rule ("liveness threshold > readiness").
-- Deep slides (level 3) show a real artefact verbatim from an official source (YAML, command and output, header, default value, formula) and one worked number.
-- Text is wrapped inside its box and never smaller than 24 px; the stage layout check FAILS on TEXT_OVERFLOW, OVERLAP, OUTSIDE_PARENT, EMPTY_BOX, OUT_OF_ZONE, TOO_MUCH_TEXT. Fix the layout, never the checker.
+## 4. Write the slides (specs/postNN_<slug>.py) - v3 story format
+COPY THE STRUCTURE OF `specs/post01_kubernetes_probes.py` (the model post). Rules (enforced by `carousel_check.py` and `carousel.py`):
+- 5 to 7 slides. Slide 1 `cover_story`, last slide `takeaway`, every slide in between is a `"type": "story"` slide (stage, text, cards, flow, compare and detail templates are retired for posts; the checker FAILS them).
+  Levels 1, 1, 1, 2, 3, 3, 3 for 7 slides (never decreasing; slides 1-2 level 1; at least one level 3 slide before the takeaway). `step` numbers the chapters 1, 2, 3 ...
+- A story slide = `title` as parts `[(text, accent), ...]` (the accent word is drawn in amber italic; at most 9 words), 1-4 `bullets` (rich text, `**bold**` for the key fact; one idea per bullet, up to ~25 words),
+  optional `cards` (2 side-by-side cards: `label`, `head`, `text`, `color` pink/mint/amber/cyan, `highlight`) for a contrast, and the `hook`.
+- No code anywhere (see Depth rules). Explain what the system does, with the numbers.
+- Layout: the renderer FAILS if content runs into the hook box or a card's text does not fit. Fix the wording, never the checker.
 - Writing rules (CLAUDE.md): every slide names the topic (topic_terms) and is understandable alone; exact source terms; invented values labelled "Example"; computed numbers go in `derived_numbers` with how they were computed.
-- Send-or-save slide: exactly one slide (not the cover) carries a true, sourced rule of thumb or number to remember. The takeaway has 2-3 short `points` and a `share` line; "Follow for one tech topic a day." is drawn automatically.
+- Send-or-save slide: exactly one slide (not the cover) carries a true, sourced rule of thumb or number to remember. The takeaway has 2-3 short `points` and a `share` line.
 - Mascot: cover and takeaway only; the renderer fails if it covers text or a box.
 
 ## 5. Facts file (mandatory, before rendering)
@@ -72,7 +74,7 @@ text must fit, nothing cut off, nothing overlapping, each slide understandable a
 Start a fresh agent (Agent tool, general-purpose) and give it ONLY: `specs/postNN_facts.json`, `out/postNN_check.md`, the slide images `out/postNN_s01.png ...` and the contact sheet.
 Ask it to: (1) for every sentence on every slide find the claim and quote that supports it and list unsupported ones; (2) confirm every string is true, uses the source term and matches the worked example;
 (3) check technical accuracy against general knowledge (oversimplified until wrong? presented as universal when only common?); (4) judge each slide alone (does it name the topic, is it understandable without the others?);
-(5) judge the climb: does slide 1-3 work for a beginner, does 5-6 teach something an engineer did not know, is any slide repeating another or cuttable, is there a clear send-or-save slide;
+(5) judge the story: is each slide's hook TRUE and actually paid off by the next slide (check every pair), is there any code or config syntax (must be none); judge the climb: does slide 1-3 work for a beginner, does 5-6 teach something an engineer did not know, is any slide repeating another or cuttable, is there a clear send-or-save slide;
 (6) reply PASS or a numbered list of problems with exact fixes. "Complete" means complete context, not full grammatical sentences. Apply fixes, re-run the checks, re-render, send it back. Up to 3 rounds.
 **Stop rule:** if problems remain after 3 rounds or a fact has no source quote, do NOT deliver a post; send one message listing the open problems.
 
@@ -92,7 +94,7 @@ Read the Results table first: with at least 3 filled post rows say which cover f
 Commit your spec and facts files to a new branch `postNN-<slug>` and push it (never to main); if pushing fails, say so.
 
 ## Quality gates (do not deliver if any fails)
-- 5-7 slides, climbing level 1 to level 3; cover headline STRONG (70+) or the summary starts with "HOOK BELOW TARGET".
+- 5-7 slides, climbing level 1 to level 3, story slides only, every content slide ending on a true rehook (60+) that the next slide pays off, no code; cover headline STRONG (70+) or the summary starts with "HOOK BELOW TARGET".
 - `carousel_check.py` 0 FAIL, 0 WARN; `tests/test_carousel.py` passes; every slide image viewed.
 - Every slide stands alone and names the topic; every fact has a source quote; exact source terms; one consistent example; counts stated by sources.
 - One send-or-save slide; the takeaway ends with "Follow for one tech topic a day."; mascot never covers text.

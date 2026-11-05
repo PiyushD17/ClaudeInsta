@@ -36,18 +36,26 @@ assert "DEEP_DIVE" in out, out                                  # no deep dive f
 num = copy.deepcopy(spec); num["slides"][1]["bullets"] = ["It makes 37 requests per second."]
 rc, out = check(num, facts)
 assert "UNSOURCED_NUMBER" in out, out                           # numbers must come from a quote
-# v2: stage slides (same object engine and layout check as the reels)
+# v3: story slides (one chapter per slide, rehook at the bottom, no code)
 model = carousel.load_spec(os.path.join(root, "specs", "post01_kubernetes_probes.py"))
 paths, errs = carousel.render(model, os.path.join(tmp, "m"))
 assert not errs, errs                                           # the model post renders clean
-ov = copy.deepcopy(model)
-ov["slides"][1]["objects"].append({"kind": "panel", "id": "tiny", "x": 60, "y": 1150, "w": 200, "h": 60, "label": "A label far too long for this little box", "compact": True})
+ov = copy.deepcopy(model); ov["slides"][1]["bullets"] = ["A very long Kubernetes probe sentence that keeps going " * 3] * 6
 _, errs = carousel.render(ov, os.path.join(tmp, "o"))
-assert any("TEXT_OVERFLOW" in e for e in errs) and any("OVERLAP" in e for e in errs), errs   # overflow and collisions on a stage slide are caught
+assert errs, "story slide overflow into the hook box was not caught"
 mfacts = json.load(open(os.path.join(root, "specs", "post01_facts.json")))
 rc, out = check(model, mfacts)
-assert rc == 0, out                                             # the model post passes the checker ("four ways" backs the 4)
+assert rc == 0 and "WARN" not in out, out                       # the model post passes with 0 FAIL / 0 WARN
 old = copy.deepcopy(model); old["slides"][2] = {"type": "text", "level": 1, "label": "KUBERNETES", "title": "Kubernetes probes", "bullets": ["Kubernetes probe one."]}
 rc, out = check(old, mfacts)
-assert "SLIDE_TYPE" in out, out                                 # retired text templates fail for content slides
-print("OK: carousel renders clean; overflow, missing claims, share, slide count, levels, unsourced numbers, stage-slide overflow/overlap and retired slide types are caught.")
+assert "SLIDE_TYPE" in out, out                                 # retired templates fail for content slides
+nohook = copy.deepcopy(model); del nohook["slides"][3]["hook"]
+rc, out = check(nohook, mfacts)
+assert "NO_REHOOK" in out, out                                  # every content slide ends on a rehook
+weak = copy.deepcopy(model); weak["slides"][3]["hook"] = "More about Kubernetes probes is on the next slide of this post."
+rc, out = check(weak, mfacts)
+assert "REHOOK_SCORE" in out and rc == 1, out                   # a weak rehook fails
+code = copy.deepcopy(model); code["slides"][4]["bullets"][0] = "Set `failureThreshold: 30` on the Kubernetes startup probe."
+rc, out = check(code, mfacts)
+assert "CODE" in out and rc == 1, out                           # code on a slide fails
+print("OK: carousel renders clean; overflow, missing claims, share, slide count, levels, unsourced numbers, story overflow, retired slide types, missing/weak rehooks and code are caught.")

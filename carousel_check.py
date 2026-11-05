@@ -18,14 +18,17 @@ Facts file (JSON), written from sources the run actually opened:
 import argparse, json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, "skills", "ig-reel"))
-import carousel, hookscore as hs
+import carousel, hookscore as hs, rehookscore
 
 findings = []
 NUMWORDS = {"1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten"}
 def add(level, code, msg): findings.append((level, code, msg))
-SKIP = {"type", "level", "highlight", "mascot", "_tag", "_topic"}
+SKIP = {"type", "level", "highlight", "mascot", "_tag", "_topic", "color", "step"}
 
 def strings(slide):
+    if slide.get("type") in ("story", "cover_story") and not slide.get("objects"):
+        out = [("headline", "".join(p[0] for p in slide["title"]).strip())]
+        return out + strings_plain({k: v for k, v in slide.items() if k != "title"})
     if slide.get("objects") or slide.get("type") == "stage":
         import stage
         out = []
@@ -58,11 +61,27 @@ def main():
     texts = [strings(s) for s in slides]
     # structure
     if not 5 <= n <= 7: add("FAIL", "SLIDE_COUNT", f"{n} slides; a post has 5 to 7.")
-    if slides[0]["type"] != "cover": add("FAIL", "COVER", "Slide 1 must be the cover.")
+    if slides[0]["type"] not in ("cover", "cover_story"): add("FAIL", "COVER", "Slide 1 must be the cover (cover_story).")
     if slides[-1]["type"] != "takeaway": add("FAIL", "TAKEAWAY", "The last slide must be the takeaway (it carries the closing call to action).")
     for i, s in enumerate(slides[1:-1], start=2):
-        if s["type"] != "stage":
-            add("FAIL", "SLIDE_TYPE", f'Slide {i} is a "{s["type"]}" slide. Content slides are "stage" slides (objects and state, STYLE_GUIDE.md v2); the old text/cards/flow/compare/detail templates are retired.')
+        if s["type"] != "story":
+            add("FAIL", "SLIDE_TYPE", f'Slide {i} is a "{s["type"]}" slide. Content slides are "story" slides (v3: one chapter per slide, ending on a rehook); the stage and old text/cards/flow/compare/detail templates are retired for posts.')
+            continue
+        hook = s.get("hook", "").replace("**", "")
+        if not hook: add("FAIL", "NO_REHOOK", f"Slide {i} has no hook: every content slide ends on a rehook that the next slide pays off."); continue
+        if len(hook.split()) > 18: add("WARN", "REHOOK_LONG", f'Slide {i} hook has {len(hook.split())} words (keep it under 18).')
+        sc, comps, _fl, ok = rehookscore.score(hook)
+        if not ok: add("FAIL", "REHOOK_SCORE", f'Slide {i} hook "{hook}" scores {sc} {comps} (need 60+ overall, 40+ each).')
+        else: add("INFO", "REHOOK_SCORE", f'Slide {i} hook scores {sc}.')
+    # no code on a carousel (owner rule, Nov 2026): concepts, not syntax
+    for i, s in enumerate(slides, start=1):
+        for o in s.get("objects", []):
+            if o.get("kind") in ("terminal", "table"): add("FAIL", "CODE", f'Slide {i} has a {o["kind"]} object: posts explain concepts, no code or config.')
+        for k, t in strings(s):
+            if re.search(r"`|[{}]|^\$ |^> |\w+\(\)|:\s*\S+\s*$" if k == "code" else r"`|[{}]|^\$ |^> |\w+\(\)", t):
+                add("FAIL", "CODE", f'Slide {i}: "{t[:50]}" looks like code; explain the concept in words.')
+            for w in re.findall(r"\b[a-z]+[A-Z][A-Za-z]*\b", t):
+                add("WARN", "CODE_TERM", f'Slide {i}: "{w}" is a config field name; say what it means in words.')
     lv = [s.get("level", 1) for s in slides]
     if lv != sorted(lv): add("FAIL", "LEVELS", f"Levels must never go back down: {lv}.")
     if lv[0] != 1 or lv[1] != 1: add("FAIL", "LEVELS", "Slides 1 and 2 must be level 1 (the high-level picture).")
@@ -81,22 +100,22 @@ def main():
     for i, items in enumerate(texts):
         shown = " ".join(t for _, t in items).lower()
         if tt and not any(t in shown for t in tt): add("FAIL", "FRAME_STANDALONE", f"Slide {i + 1} shows nothing that names the topic (needs one of {tt}).")
-        words = sum(len(t.split()) for k, t in items if k not in ("label", "chips"))
+        words = sum(len(t.split()) for k, t in items if k not in ("label", "chips", "meta"))
         if words > 85: add("WARN", "TOO_MUCH_TEXT", f"Slide {i + 1} has {words} words; a slide must be readable in a few seconds (cut below 85).")
         for k, t in items:
             for term in facts.get("terms", []):
                 for bad in term.get("never_say", []):
                     if bad.lower() in t.lower(): add("FAIL", "WRONG_TERM", f'Slide {i + 1}: "{bad}" must be "{term["use"]}".')
             nw = len(t.split())
-            if k == "title" and slides[i]["type"] == "cover": continue      # cover title lines are one headline split over lines
-            if k not in ("label", "chips", "head", "kicker", "code", "object") and (nw <= 2 and not re.search(r"[\d.?!]", t)):
+            if k in ("title", "headline") and slides[i]["type"] in ("cover", "cover_story"): continue      # cover title lines are one headline split over lines
+            if k not in ("label", "chips", "meta", "head", "kicker", "code", "object") and (nw <= 2 and not re.search(r"[\d.?!]", t)):
                 add("FAIL", "SHORT_LABEL", f'Slide {i + 1} {k}: "{t}" is too short to stand alone; say what it is.')
         own = [c for c in claims if i + 1 in c.get("slides", [])]
         quotes = " ".join(c.get("quote", "") for c in own)
         qwords = set(re.findall(r"[a-z]+", quotes.lower()))
         derived = {str(x) for x in facts.get("derived_numbers", {})}
         for k, t in items:
-            if k == "chips" and re.fullmatch(r"\d+ SLIDES", t): continue
+            if k in ("chips", "meta") and re.fullmatch(r"\d+ SLIDES", t): continue
             for num in re.findall(r"\d[\d,.]*", t):
                 num = num.rstrip(".,")
                 if num in NUMWORDS and NUMWORDS[num] in qwords: continue      # "four ways" in the quote backs a "4" on the slide

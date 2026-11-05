@@ -16,4 +16,4 @@ System design: load balancers, CAP theorem, message queues, rate limiting, CDN
 Cloud: serverless vs containers, what Kubernetes does, regions and availability zones
 | 10 | 2026-11-05 | What RAG (retrieval-augmented generation) does | "Stop retraining AI models on your documents. Try RAG first." (hook score 87.0) | AWS "What is RAG?", Lewis et al. RAG paper (arXiv 2005.11401) |
 | 11 | 2026-11-05 | Rate limiter deep dive (story format, test run) | "What actually goes into your rate limiter? 1 Redis script, 1 formula, 1 HTTP header." (73.0) | Redis tutorial, Redis eval-intro, Cloudflare blog, Stripe blog, MDN, RFC 6585 |
-| P01 | 2026-11-05 | [POST] Kubernetes liveness, readiness and startup probes | "What actually goes into your Kubernetes probes? 3 probes, 4 mechanisms, 1 trap." (81.4) | kubernetes/website: probes task page, pod lifecycle, probes concept |
+| P01 | 2026-11-05 | [POST] Kubernetes liveness, readiness and startup probes (v3 story) | "Why your liveness probe can kill your slow app within 30 seconds" (76.4) | kubernetes/website: probes task page, pod lifecycle, probes concept |

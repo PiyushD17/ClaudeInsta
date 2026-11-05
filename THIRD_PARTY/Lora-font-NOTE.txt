@@ -1,0 +1,1 @@
+Lora (fonts/Lora-Italic-Variable.ttf) by Cyreal, SIL Open Font License 1.1 (https://openfontlicense.org). Used for accent words in carousel titles.
