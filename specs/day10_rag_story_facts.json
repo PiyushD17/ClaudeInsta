@@ -1,0 +1,152 @@
+{
+ "terms": [
+  {
+   "use": "retrieval-augmented generation",
+   "never_say": [
+    "retrieval augmented generator",
+    "retrieval-assisted generation"
+   ]
+  },
+  {
+   "use": "vector database",
+   "never_say": [
+    "vector store rule"
+   ]
+  },
+  {
+   "use": "numerical representations",
+   "never_say": []
+  },
+  {
+   "use": "training data",
+   "never_say": []
+  },
+  {
+   "use": "cut-off date",
+   "never_say": []
+  },
+  {
+   "use": "relevancy search",
+   "never_say": []
+  }
+ ],
+ "counts": {},
+ "rehook": {
+  "line": 4,
+  "payoff_line": 5
+ },
+ "illustrative_numbers": [
+  "1",
+  "5"
+ ],
+ "claims": [
+  {
+   "say": "Stop retraining AI models on your documents. Try RAG first. (RAG is a more cost-effective way to introduce new data than retraining)",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "The computational and financial costs of retraining FMs for organization or domain-specific information are high. RAG is a more cost-effective approach to introducing new data to the LLM."
+  },
+  {
+   "say": "RAG works for a company's own documents without retraining the model.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "RAG extends the already powerful capabilities of LLMs to specific domains or an organization's internal knowledge base, all without the need to retrain the model."
+  },
+  {
+   "say": "A language model's training data is static, with a cut-off date.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "Additionally, LLM training data is static and introduces a cut-off date on the knowledge it has."
+  },
+  {
+   "say": "Ask the chatbot, and it can present false information (when it does not have the answer).",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "Known challenges of LLMs include: Presenting false information when it does not have the answer."
+  },
+  {
+   "say": "Example: a refund policy that is not in the training data (illustration of a document the model never saw).",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "The new data outside of the LLM's original training data set is called external data. It can come from multiple data sources, such as a APIs, databases, or document repositories."
+  },
+  {
+   "say": "But how does the chatbot find the 1 relevant page in all your documents? (RAG introduces an information retrieval component that pulls the relevant information; '1 page' is an example)",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "With RAG, an information retrieval component is introduced that utilizes the user input to first pull information from a new data source."
+  },
+  {
+   "say": "RAG is retrieval-augmented generation.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "Retrieval-Augmented Generation (RAG) is the process of optimizing the output of a large language model, so it references an authoritative knowledge base outside of its training data sources before generating a response."
+  },
+  {
+   "say": "RAG retrieves relevant information, then gives it to the model with your question.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "The user query and the relevant information are both given to the LLM."
+  },
+  {
+   "say": "RAG retrieves text documents and uses them as additional context (paper).",
+   "source": "https://ar5iv.labs.arxiv.org/html/2005.11401",
+   "quote": "We explore RAG models, which use the input sequence xx to retrieve text documents zz and use them as additional context when generating the target sequence yy."
+  },
+  {
+   "say": "LLM = large language model (scene note).",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "Retrieval-Augmented Generation (RAG) is the process of optimizing the output of a large language model"
+  },
+  {
+   "say": "Often, your documents are converted to numerical representations and stored in a vector database.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "Another AI technique, called embedding language models, converts data into numerical representations and stores it in a vector database."
+  },
+  {
+   "say": "Your question is converted too, then matched against them (relevancy search in a vector database).",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "The next step is to perform a relevancy search. The user query is converted to a vector representation and matched with the vector databases."
+  },
+  {
+   "say": "To change what a RAG chatbot knows, don't retrain the model. Update its documents.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "To maintain current information for retrieval, asynchronously update the documents and update embedding representation of the documents."
+  },
+  {
+   "say": "Knowledge in RAG can be updated by replacing its non-parametric memory, without retraining.",
+   "source": "https://ar5iv.labs.arxiv.org/html/2005.11401",
+   "quote": "An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time."
+  },
+  {
+   "say": "Retraining the model has high computational and financial costs; updating the documents is a more cost-effective way to introduce new data to the LLM (scene card).",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "The computational and financial costs of retraining FMs for organization or domain-specific information are high. RAG is a more cost-effective approach to introducing new data to the LLM."
+  },
+  {
+   "say": "The catch: finding the right context gets harder at scale, which lowers answer quality.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "Context retrieval is challenging at scale and consequently lowers generative output quality."
+  },
+  {
+   "say": "Before you retrain an AI model on your documents, ask whether RAG can retrieve them instead (RAG is the more cost-effective approach to introducing new data).",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "RAG is a more cost-effective approach to introducing new data to the LLM."
+  },
+  {
+   "say": "So to change what a RAG chatbot knows, don't retrain the model. Update its documents.",
+   "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation",
+   "quote": "RAG extends the already powerful capabilities of LLMs to specific domains or an organization's internal knowledge base, all without the need to retrain the model."
+  }
+ ],
+ "share": {
+  "line": 7,
+  "who": "a manager or developer who has been asked to 'retrain the AI on our company documents'",
+  "why": "it tells them the cheaper route: with RAG you update the documents instead of retraining the model"
+ },
+ "replay": {
+  "echo": "documents",
+  "twist": "On a second watch 'Stop retraining AI models on your documents' reads as a question to ask first: can RAG retrieve the documents instead?"
+ },
+ "topic_terms": [
+  "RAG",
+  "AI model",
+  "language model",
+  "chatbot",
+  "documents",
+  "retrieval"
+ ],
+ "length_reason": "About 140 words (48 s): the refund-policy example and the catch each need their own beat; nothing is padding."
+}

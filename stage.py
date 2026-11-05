@@ -61,8 +61,8 @@ def display_strings(sc):
         k = o.get("kind")
         if k in ("text", "chip", "question", "packet", "callout", "follow") and o.get("text"): out.append(("text", o["text"]))
         if k == "panel" and o.get("title"): out.append(("title", o["title"]))
-        if k in ("brush", "callout"):
-            for p in o.get("parts", []): out.append(("title" if k == "brush" else "text", p[0]))
+        if k in ("brush", "callout") and o.get("parts"):
+            out.append(("title" if k == "brush" else "text", "".join(p[0] for p in o["parts"])))
         if k == "meter":
             for key in ("label", "right"):
                 if o.get(key): out.append((key, o[key]))
@@ -308,7 +308,7 @@ def draw_obj(d, img, ob, t, spec):
             n = len(txt) if not typed else int(min(len(txt), max(0.0, tt) * cps))
             if not typed and tt <= 0: n = 0
             shown = txt[:n]
-            if ln.get("hl") and n > 0: rr(d, [x + 12, yy - 4, x + w - 12, yy + fs + 8], fill=A(A(COL["pink"], 0.28)[:3], a), outline=A(COL["pink"], a), width=2, radius=8)
+            if ln.get("hl") and n > 0: rr(d, [x + 12, yy - 4, x + w - 12, yy + fs + 8], fill=A(COL["pink"], 0.28 * a), outline=A(COL["pink"], a), width=2, radius=8)
             d.text((x + 24, yy), shown, font=MONO(fs), fill=A(col(ln.get("color", "white" if typed else "gray")), a))
             if typed and 0 < n < len(txt) and int(t * 3) % 2 == 0: d.rectangle([x + 24 + d.textlength(shown, font=MONO(fs)) + 2, yy, x + 24 + d.textlength(shown, font=MONO(fs)) + 14, yy + fs + 2], fill=A(COL["white"], a))
             tt -= (len(txt) / cps if typed else 0.15) + ln.get("pause", 0.25); yy += fs * 1.55

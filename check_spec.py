@@ -89,6 +89,12 @@ def collect(obj, key=""):
             out += collect(v, key)
     return out
 
+def scene_strings(sc):
+    if sc.get("type") == "stage":
+        import stage
+        return stage.display_strings(sc)
+    return collect(sc)
+
 # ----------------------------------------------------------------------------- text patterns
 RE_NUM = re.compile(r"(?<![\w.])(\d+(?:[.,]\d+)*)(?:\s+(million|billion|thousand|percent))?|\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b", re.I)
 RE_LABEL = re.compile(r"\b([A-Za-z]+)\s+(\d{1,3})\b")
@@ -131,7 +137,7 @@ def count_claims(text):
 # ----------------------------------------------------------------------------- text checks
 def text_checks(spec, lines, bounds, facts, legacy):
     scenes = spec["scenes"]
-    onscreen = [collect(sc) for sc in scenes]
+    onscreen = [scene_strings(sc) for sc in scenes]
     all_texts = [("script line %d" % (i + 1), l) for i, l in enumerate(lines)]
     for i, items in enumerate(onscreen):
         all_texts += [("scene %d %s" % (i + 1, k or "text"), t) for k, t in items]
@@ -411,7 +417,7 @@ def main():
     extra = ""
     if a.spec:
         spec, lines, bounds, dur = load_spec(a.spec)
-        onscreen = text_checks(spec, lines, bounds, facts, a.legacy) or [collect(sc) for sc in spec["scenes"]]
+        onscreen = text_checks(spec, lines, bounds, facts, a.legacy) or [scene_strings(sc) for sc in spec["scenes"]]
         extra = side_by_side(spec, lines, bounds, onscreen)
         mascot_overlap_checks(a.spec)
     if a.video:
