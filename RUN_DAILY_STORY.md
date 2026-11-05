@@ -1,0 +1,25 @@
+# Daily run (story format): one technical deep-dive reel
+
+This procedure REPLACES the short-reel format in RUN_DAILY.md for new videos. Everything in RUN_DAILY.md that is not changed here still applies (setup, topic choice, research, hook/rehook/reach gates, facts file, reviewer pass, caption, delivery, log, results). Read STYLE_GUIDE.md first.
+
+## What is different
+| | old short reel | story format |
+|---|---|---|
+| audience | beginners | mature: knows the basics, wants to know what goes into building/running it |
+| hook | claim or debate | promise of the mechanism with a number or concrete payoff (still hookscore 70+) |
+| visuals | one scene per line, reset each time | `stage` scenes: persistent diagram, numbered step dots, typed terminal blocks, word-anchored timing |
+| facts | one source is enough | at least 3 sources opened now (official docs first); every command, config, default or number is quoted verbatim in the facts file |
+| length | 35-45 s | as short as the mechanism allows: 50 s if one mechanism fits, otherwise up to 150 s hard maximum; spec key `"format": "story"` (checker: 200-460 words, <= 2000 characters, 60-150 s) |
+| music | ducked music | quiet music only; the owner mixes the voice |
+
+## Steps
+1. Setup and topic: as RUN_DAILY.md sections 0-1. Prefer topics that have a buildable pipeline (several steps, each with a real command or setting): RAG, CI/CD, caching, auth flows, queues, indexing, replication...
+2. Research (section 2, stricter): open at least 3 sources now. Collect, with verbatim quotes, the real artefacts of each step: commands/queries/config, default values, limits, file formats, the official names of the steps. Pick ONE worked example and keep it identical everywhere. Note the single most important trade-off or failure mode with its source.
+3. Script: 12-16 lines, one scene each. Structure: hook (promise + number) -> at most one line of why -> the named steps in one line (dots) -> for each step one or two lines of mechanism with the real artefact -> rehook (25-65%) answered by the payoff line -> catch (trade-off/failure) -> recap + "Follow for one tech topic a day.". Score hooks (6+ candidates, 70+) and rehooks (6+, 60+) as in RUN_DAILY.md section 3. Do not open with "Stop doing X"/a debate unless the whole topic is a comparison.
+4. Spec: `specs/dayNN_slug.py` with `"format": "story"` and `stage` scenes (model: `specs/day10_rag_deep.py`; object kinds are documented at the top of `stage.py`). Anchor each object to its spoken word with `wi(line, "token")`; objects belonging to a line start at -0.2/-0.3 if they should be visible at the line start. First scene is the hook text plus the base diagram (no separate title card). Label invented content "Example"/"Illustration". Mascot `{"x": 900, "y": 1300, "size": 150}`.
+5. Facts file `specs/dayNN_facts.json` as before (terms, counts, rehook, share, replay, topic_terms, illustrative_numbers, claims with verbatim quotes, `length_reason`).
+6. Build and check: `python3 build.py specs/dayNN_slug.py`, then `python3 check_spec.py specs/dayNN_slug.py --facts specs/dayNN_facts.json --video out/dayNN_slug_silent.mp4 --report out/dayNN_check.md` until 0 FAIL and 0 WARN. Run every test in `tests/`.
+7. Look at it: `python3 animsheet.py --step 2.0 --cols 6 specs/dayNN_slug.py out/dayNN_film` and read every strip. Check against STYLE_GUIDE.md: text inside boxes, no overlaps, no dead screen, objects appear on their spoken word, nothing contradicts the voice, clean lettering, lower third calm.
+8. Independent reviewer (fresh agent, files only, max 3 rounds until PASS): per sentence claim and quote; every example labelled; each visual appears at or after the word it illustrates (give it the `wi()` anchors); order on screen equals order of words; technical correctness of every command/number; rehook answered by payoff; each frame understandable alone. STOP RULE as before: no source quote or no PASS after 3 rounds -> deliver a problem list, not a video.
+9. Caption, sources, delivery, log, results: as RUN_DAILY.md sections 5-8. In the summary also state: script characters (voiceover credits), duration, and which steps carry a real command/number.
+Never call ElevenLabs generation tools; never post anywhere.

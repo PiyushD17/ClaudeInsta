@@ -16,6 +16,9 @@ When the user sends a voice recording later: measure it, retime the spec, then `
 ## Carousel posts (second daily job)
 Besides the reel, a separate daily job makes an Instagram carousel post: 5-7 slides (1080x1350) that climb from the big picture to a deep dive. Procedure: `RUN_DAILY_POST.md`; tools: `carousel.py`, `carousel_check.py`, `specs/postNN_*`. The same brand, writing, accuracy and reviewer rules apply (every slide stands alone, every fact has a source quote, exact source terms, mascot never covers text). A post never repeats a topic that already has a reel or a post.
 
+## Story format (technical deep dives): the default for new reels
+Reference style analysed from two long explainers with thousands of views: see `STYLE_GUIDE.md`; procedure: `RUN_DAILY_STORY.md` (takes precedence over the short-reel parts of `RUN_DAILY.md`). Mature audience, real mechanism (real commands, defaults, numbers quoted from official docs), one persistent animated canvas (`stage.py`, spec key `"format": "story"`, `"type": "stage"` scenes), hook promises what goes into building the thing, as short as the mechanism allows (50 s when it fits, hard maximum 150 s, voiceover script at most 2000 characters because of free ElevenLabs credits). All gates (hook 70+, rehook 60+, reach, frame-standalone, zero warnings, filmstrip review, tests, independent reviewer) still apply.
+
 ## Hook rules (first 1.5 seconds decide retention)
 - Open with the strongest claim or a question, big text on screen from frame 0, written as a complete thought.
 - Something visibly changes within the first second. The voice starts immediately.
