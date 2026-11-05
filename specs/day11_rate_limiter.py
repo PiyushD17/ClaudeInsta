@@ -107,14 +107,18 @@ SPEC = {
         # 6 atomic check: INCR and EXPIRE in one Lua script
         {"type": "stage", "objects": [
             TITLE(6, [("Atomic check: ", "cyan"), ("one Lua script", "white")]),
+            dict(term("r6a", "Example: two separate commands", [
+                {"text": "> INCR ratelimit:user123:4", "type": True, "color": "white", "at": wi(6, "incr")},
+                {"text": "(integer) 1", "color": "mint", "at": wi(6, "runs")},
+                {"text": "# crash: EXPIRE never runs", "color": "red", "at": wi(6, "expire")},
+                {"text": "# no expiry: never cleaned up", "color": "red", "hl": True, "at": wi(6, "expiry")}], cps=40), out=wi(6, "both")),
             term("r6", "Example: Lua script run with EVAL", [
-                {"text": "-- no EXPIRE: keys are never cleaned up", "color": "red", "at": wi(6, "incr")},
                 {"text": "local count = redis.call('INCR', KEYS[1])", "type": True, "color": "white", "at": wi(6, "both")},
                 {"text": "if count == 1 then", "type": True, "color": "white", "pause": 0.05},
                 {"text": "  redis.call('EXPIRE', KEYS[1], ARGV[1])", "type": True, "color": "mint", "pause": 0.05},
                 {"text": "end", "type": True, "color": "white", "pause": 0.05},
                 {"text": "return count", "type": True, "color": "white", "pause": 0.05},
-                {"text": "-- EVAL runs it atomically", "color": "gray", "at": wi(6, "atomically")}], cps=60, size=27)],
+                {"text": "-- EVAL runs it atomically", "color": "gray", "at": wi(6, "executes")}], cps=60, size=27, t=wi(6, "both"))],
          "clear": ["q5", "r5"], "focus": [],
          "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 1}},
                     {"id": "redis", "t": wi(6, "incr"), "dur": 0.0, "set": {"rows": [["ratelimit:user123:1", "1"], ["ratelimit:user123:2", "1"]], "hl": 1, "value_color": "amber"}},
@@ -132,7 +136,7 @@ SPEC = {
             {"kind": "grid", "id": "g2", "in": "w2", "t": wi(7, "fixed"), "x": 580, "y": 1110, "w": 430, "h": 70, "cols": 10, "rows": 1, "n": 0, "color": "amber"},
             {"kind": "pill", "id": "s9", "in": "w1", "t": wi(7, "second"), "x": 285, "y": 1270, "text": "at second 9", "color": "amber", "mono": True},
             {"kind": "pill", "id": "s11", "in": "w2", "t": wi(7, "second", 2), "x": 795, "y": 1270, "text": "at second 11", "color": "amber", "mono": True}],
-         "clear": ["t6", "r6"], "focus": ["limiter", "steps"],
+         "clear": ["t6", "r6", "r6a"], "focus": ["limiter", "steps"],
          "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 2}},
                     {"id": "limiter", "t": 0.0, "dur": 0.0, "set": {"hl": False, "value": "10/10s", "value_color": "amber"}},
                     {"id": "g1", "t": wi(7, "second"), "dur": 0.6, "set": {"n": 10}},
