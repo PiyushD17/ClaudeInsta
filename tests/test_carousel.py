@@ -58,4 +58,9 @@ assert "REHOOK_SCORE" in out and rc == 1, out                   # a weak rehook 
 code = copy.deepcopy(model); code["slides"][4]["bullets"][0] = "Set `failureThreshold: 30` on the Kubernetes startup probe."
 rc, out = check(code, mfacts)
 assert "CODE" in out and rc == 1, out                           # code on a slide fails
+# owner rule: no giant background numbers/watermarks on story slides. The empty right side of the title band must be plain background.
+from PIL import Image
+im = Image.open(paths[1]).convert("RGB")
+band = [im.getpixel((x, y)) for x in range(940, 1040, 4) for y in range(250, 560, 4)]
+assert max(sum(px) for px in band) - min(sum(px) for px in band) < 20, "something is drawn in the background behind the story title (giant numbers are banned)"
 print("OK: carousel renders clean; overflow, missing claims, share, slide count, levels, unsourced numbers, story overflow, retired slide types, missing/weak rehooks and code are caught.")

@@ -52,6 +52,7 @@ COPY THE STRUCTURE OF `specs/post01_kubernetes_probes.py` (the model post). Rule
 - A story slide = `title` as parts `[(text, accent), ...]` (the accent word is drawn in amber italic; at most 9 words), 1-4 `bullets` (rich text, `**bold**` for the key fact; one idea per bullet, up to ~25 words),
   optional `cards` (2 side-by-side cards: `label`, `head`, `text`, `color` pink/mint/amber/cyan, `highlight`) for a contrast, and the `hook`.
 - No code anywhere (see Depth rules). Explain what the system does, with the numbers.
+- No giant background numbers or watermarks (owner rule, Nov 2026): nothing is drawn behind the text. The step is shown only by the small "STEP 0N" label above the title. The background stays the plain dark gradient.
 - Layout: the renderer FAILS if content runs into the hook box or a card's text does not fit. Fix the wording, never the checker.
 - Writing rules (CLAUDE.md): every slide names the topic (topic_terms) and is understandable alone; exact source terms; invented values labelled "Example"; computed numbers go in `derived_numbers` with how they were computed.
 - Send-or-save slide: exactly one slide (not the cover) carries a true, sourced rule of thumb or number to remember. The takeaway has 2-3 short `points` and a `share` line.

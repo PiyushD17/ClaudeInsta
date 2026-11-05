@@ -311,12 +311,6 @@ def accent_title(c, parts, y, size=78, maxw=900, maxlines=3):
     c.d.rounded_rectangle([X0, y + 16, X0 + 90, y + 22], radius=3, fill=AMBER)
     return y + 60
 
-def ghost_number(c, n):
-    """Huge faint step number behind the title (drawn first, not part of the text layout)."""
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
-    d.text((W - 70, 160), "%02d" % n, font=LORA(400), fill=(255, 190, 60, 22), anchor="ra")
-    c.img.paste(layer, (0, 0), layer)
-
 def hook_box(c, s, bottom=1215):
     """The rehook: an open loop at the bottom of the slide that the next slide pays off."""
     size = 36; lines_h = None
@@ -344,7 +338,6 @@ def story_cards(c, cards, y):
     return y + rows * (ch + 24)
 
 def s_story(c, s):
-    ghost_number(c, s["step"])
     c.text((X0, 222), "STEP %02d" % s["step"], MONOB(28), AMBER)
     y = accent_title(c, s["title"], 272)
     for b in s.get("bullets", []):
