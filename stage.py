@@ -114,6 +114,9 @@ def build(spec, line_starts):
         if sc.get("type") != "stage": continue
         ls = line_starts[si]
         clear = sc.get("clear")
+        if isinstance(clear, list):
+            unknown = [c for c in clear if c not in {ob.id for ob in objs}]
+            if unknown: raise KeyError(f"scene {si + 1} clears unknown object ids {unknown} (typo or an object that was split/renamed)")
         for ob in objs:
             if ob.fade_out is None and (clear is True or (isinstance(clear, list) and ob.id in clear)): ob.fade_out = ls - 0.4   # gone before the new scene's first objects appear
         for o in sc.get("objects", []):

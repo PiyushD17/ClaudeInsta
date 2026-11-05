@@ -1,0 +1,197 @@
+{
+ "terms": [
+  {
+   "use": "rate limiter",
+   "never_say": [
+    "rate limit rule"
+   ]
+  },
+  {
+   "use": "fixed window",
+   "never_say": []
+  },
+  {
+   "use": "token bucket",
+   "never_say": []
+  },
+  {
+   "use": "Retry-After",
+   "never_say": []
+  },
+  {
+   "use": "429 Too Many Requests",
+   "never_say": []
+  },
+  {
+   "use": "load shedder",
+   "never_say": [
+    "load shedding rule"
+   ]
+  },
+  {
+   "use": "concurrent requests limiter",
+   "never_say": []
+  }
+ ],
+ "counts": {},
+ "rehook": {
+  "line": 5,
+  "payoff_line": 6
+ },
+ "share": {
+  "line": 7,
+  "who": "a backend developer whose fixed-window limiter allowed a burst",
+  "why": "20 requests in 2 seconds can pass a limit of 10 per 10 seconds: worth sending to whoever wrote the limiter"
+ },
+ "replay": {
+  "echo": "header",
+  "twist": "On a second watch '1 Redis script, 1 formula, 1 HTTP header' in the hook reads as the checklist the video just walked through: the script (Lua EVAL), the formula (49.5 requests) and the header (Retry-After)."
+ },
+ "topic_terms": [
+  "rate limiter",
+  "rate limiting",
+  "requests",
+  "429",
+  "Redis",
+  "Retry-After",
+  "token bucket",
+  "window",
+  "limit",
+  "limiter",
+  "Stripe",
+  "Cloudflare"
+ ],
+ "length_reason": "About 110 s on purpose: a technical deep dive (counter, atomic Redis script, window edge, window formula, 429 and Retry-After, token bucket, other limiter types) with a real command, formula or header in every part.",
+ "illustrative_numbers": [
+  "1",
+  "2",
+  "9",
+  "10",
+  "7",
+  "8",
+  "123",
+  "3600"
+ ],
+ "claims": [
+  {
+   "say": "A rate limiter stops a client from sending too many requests in a given amount of time.",
+   "source": "https://datatracker.ietf.org/doc/html/rfc6585",
+   "quote": "The 429 status code indicates that the user has sent too many requests in a given amount of time (\"rate limiting\")."
+  },
+  {
+   "say": "The 429 mechanism of asking the client to slow down is commonly called rate limiting.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
+  },
+  {
+   "say": "In Redis, a fixed-window limiter keeps one string key per window and bumps it with INCR.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "STRING \u2014 one key per window, using INCR to bump the count and EXPIRE to auto-clean the key. A Lua script wraps both commands into a single atomic EVAL call."
+  },
+  {
+   "say": "The key includes the window number, so a new window starts a fresh count.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "The counter key includes the window number, so a new window automatically starts a fresh count."
+  },
+  {
+   "say": "INCR creates the key at 1 if it does not exist, otherwise it increments (example output (integer) 1).",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "INCR creates or increments. If the key doesn't exist, INCR creates it at 1. Otherwise it increments."
+  },
+  {
+   "say": "Two concurrent requests can both read the same count and both be allowed (TOCTOU race); example numbers 9 and 10 are illustrative.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "If these steps run as separate Redis commands, concurrent requests can read the same state, both decide they're allowed, and both write back \u2014 bypassing the limit. This is a TOCTOU (time-of-check-time-of-use) race condition"
+  },
+  {
+   "say": "Run INCR and EXPIRE inside a single Lua EVAL call; Redis executes Lua scripts atomically, so no other command can interleave.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "The entire increment-and-expire sequence runs inside a single EVAL call. Redis executes Lua scripts atomically, so no other command can interleave between the INCR and the EXPIRE."
+  },
+  {
+   "say": "EXPIRE is set when count == 1, the first request in a new window.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "Expiry on first request. When count == 1 this is the first request in a new window. The script sets EXPIRE so the key auto-deletes after the window passes."
+  },
+  {
+   "say": "A client could send 10 requests at second 9 and 10 more at second 11: 20 requests in 2 seconds within a limit of 10 per 10 seconds.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "A client could send 10 requests at second 9 and another 10 at second 11 \u2014 20 requests in 2 seconds while technically staying within a \"10 per 10 seconds\" limit, because the requests straddle two windows."
+  },
+  {
+   "say": "Cloudflare's previous-counter estimate uses the previous window's counter to extrapolate the request rate.",
+   "source": "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/",
+   "quote": "But actually, can't we just use the information from the previous counter in order to extrapolate an accurate approximation of the request rate?"
+  },
+  {
+   "say": "Worked example: limit 50 requests per minute, 18 requests in the current minute that started 15 seconds ago, 42 in the previous minute: rate = 42 * ((60-15)/60) + 18 = 42 * 0.75 + 18 = 49.5 requests.",
+   "source": "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/",
+   "quote": "Let's say I set a limit of 50 requests per minute on an API endpoint. In this situation, I did 18 requests during the current minute, which started 15 seconds ago, and 42 requests during the entire previous minute. rate = 42 * ((60-15)/60) + 18 = 42 * 0.75 + 18 = 49.5 requests"
+  },
+  {
+   "say": "The previous-counter estimate is an approximation.",
+   "source": "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/",
+   "quote": "This algorithm assumes a constant rate of requests during the previous sampling period (which can be any time span), this is why the result is only an approximation of the actual rate."
+  },
+  {
+   "say": "In an analysis of 400 million requests, 0.003% were wrongly allowed or rate limited.",
+   "source": "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/",
+   "quote": "It is still very accurate, as an analysis on 400 million requests from 270,000 distinct sources shown: 0.003% of requests have been wrongly allowed or rate limited"
+  },
+  {
+   "say": "A blocked client gets HTTP 429 Too Many Requests.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time."
+  },
+  {
+   "say": "The response may include a Retry-After header indicating how long to wait before making a new request.",
+   "source": "https://datatracker.ietf.org/doc/html/rfc6585",
+   "quote": "The response representations SHOULD include details explaining the condition, and MAY include a Retry-After header indicating how long to wait before making a new request."
+  },
+  {
+   "say": "Example response: HTTP/1.1 429 Too Many Requests, Content-Type: text/html, Retry-After: 3600.",
+   "source": "https://datatracker.ietf.org/doc/html/rfc6585",
+   "quote": "HTTP/1.1 429 Too Many Requests Content-Type: text/html Retry-After: 3600"
+  },
+  {
+   "say": "Retry-After holds either a number of seconds to wait or a date after which to retry.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After",
+   "quote": "<http-date>: A date after which to retry. <delay-seconds>: A non-negative decimal integer indicating the seconds to delay after the response is received."
+  },
+  {
+   "say": "Retry-After example lines: Retry-After: Wed, 21 Oct 2015 07:28:00 GMT and Retry-After: 120.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After",
+   "quote": "Retry-After: Wed, 21 Oct 2015 07:28:00 GMT Retry-After: 120"
+  },
+  {
+   "say": "Stripe uses the token bucket algorithm: each user has a bucket, each request removes a token, more tokens slowly drip in, an empty bucket rejects the request.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "We use the token bucket algorithm to do rate limiting. This algorithm has a centralized bucket host where you take tokens on each request, and slowly drip more tokens into the bucket. If the bucket is empty, reject the request. In our case, every Stripe user has a bucket, and every time they make a request we remove a token from that bucket."
+  },
+  {
+   "say": "Stripe's request rate limiter restricts each user to N requests per second.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "This rate limiter restricts each user to N requests per second."
+  },
+  {
+   "say": "Stripe also runs a concurrent requests limiter, for example 20 API requests in progress at the same time.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "Instead of \"You can use our API 1000 times a second\", this rate limiter says \"You can only have 20 API requests in progress at the same time\"."
+  },
+  {
+   "say": "Load shedders make decisions based on the whole state of the system.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "A load shedder makes its decisions based on the whole state of the system rather than the user who is making the request."
+  },
+  {
+   "say": "Fixed window and sliding window are rate limiter algorithms (the Redis tutorial builds rate limiters with these).",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "Build 5 Rate Limiters with Redis: Fixed Window, Sliding Window, Token Bucket, and Leaky Bucket"
+  },
+  {
+   "say": "The limit check belongs inside the same atomic script as INCR and EXPIRE (race condition otherwise).",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "Redis executes Lua scripts atomically on the server. No other command runs between the script's reads and writes."
+  }
+ ]
+}

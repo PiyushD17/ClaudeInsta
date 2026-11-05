@@ -74,4 +74,10 @@ for dt in (0.6, 0.9, 1.2, 1.6, 2.2):
     assert right >= prev - 16, (dt, right, prev)            # the blinking cursor is 14 px wide; the text itself never shrinks
     prev = max(prev, right)
 assert prev > 200, prev
+# a clear list naming an object that does not exist must fail loudly (a stale id once left two terminals overlapping)
+BAD = dict(SPEC, scenes=[SPEC["scenes"][0], {"type": "stage", "objects": [], "clear": ["nope"]}], lines=SPEC["lines"][:2])
+try:
+    stage.build(BAD, ls[:2]); raise SystemExit("unknown clear id was accepted")
+except KeyError:
+    pass
 print("OK: stage engine - anchors, tweens, persistence, clear and typing behave.")
