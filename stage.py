@@ -167,22 +167,24 @@ def wrap(d, text, f, maxw):
     lines.append(cur)
     return lines
 
+def fit_font(fn, text, size, maxw):
+    """Largest font (<= size) whose rendered text is at most maxw wide, so nothing leaves its box."""
+    size = int(size)
+    f = fn(size)
+    while size > 14 and f.getlength(text) > maxw:
+        size -= 1; f = fn(size)
+    return f
+
 def brush_text(img, cx, cy, parts, size, a, seed=3):
-    """Hand-lettered look: bold sans, sheared, with a tiny per-letter wobble and a wavy underline (a real brush font in fonts/brush.ttf is used if present)."""
+    """Chapter title / note: clean bold lettering in the part colours (no wobble, no underline)."""
     f = ImageFont.truetype(F + "brush.ttf", int(size)) if os.path.exists(F + "brush.ttf") else BOLD(size)
     tmp = ImageDraw.Draw(Image.new("RGB", (4, 4)))
-    total = sum(tmp.textlength(t + " ", font=f) for t, _ in parts)
-    pad = 30
-    layer = Image.new("RGBA", (int(total) + 2 * pad, int(size * 1.9)), (0, 0, 0, 0))
-    ld = ImageDraw.Draw(layer); rnd = random.Random(seed); x = pad
+    total = sum(tmp.textlength(t, font=f) for t, _ in parts)
+    pad = 20
+    layer = Image.new("RGBA", (int(total) + 2 * pad, int(size * 1.6)), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer); x = pad
     for t, c in parts:
-        for ch in t + " ":
-            ld.text((x, int(size * 0.3) + rnd.uniform(-2, 2)), ch, font=f, fill=col(c)); x += tmp.textlength(ch, font=f)
-    # wavy underline in the colour of the last part
-    y0 = int(size * 1.5); lc = col(parts[-1][1])
-    pts = [(pad + i * 6, y0 + 4 * math.sin(i * 0.5)) for i in range(int((total) / 6))]
-    if len(pts) > 1: ld.line(pts, fill=lc, width=max(3, int(size / 14)), joint="curve")
-    layer = layer.transform(layer.size, Image.AFFINE, (1, 0.16, -0.16 * layer.size[1] / 2, 0, 1, 0), resample=Image.BICUBIC)
+        ld.text((x, int(size * 0.2)), t, font=f, fill=col(c)); x += tmp.textlength(t, font=f)
     if a < 0.999: layer.putalpha(layer.getchannel("A").point(lambda v: int(v * a)))
     img.paste(layer, (int(cx - layer.size[0] / 2), int(cy - layer.size[1] / 2)), layer)
 
@@ -268,7 +270,7 @@ def draw_obj(d, img, ob, t, spec):
         rr(d, [x, y, x + w, y + h], fill=A(PANEL, a * (0.55 if p.get("dashed") else 1)), outline=A(c if p.get("color") else EDGE, a), width=3 if p.get("color") else 2, dashed=p.get("dashed", False))
         tx = x + 22
         if p.get("icon"): draw_icon(d, p["icon"], x + 38, y + 36, 30, c if p.get("color") else COL["gray"], a); tx = x + 66
-        if p.get("title"): d.text((tx, y + 36), p["title"].upper(), font=BOLD(p.get("tsize", 24)), fill=A(COL["white"], a), anchor="lm")
+        if p.get("title"): d.text((tx, y + 36), p["title"].upper(), font=fit_font(BOLD, p["title"].upper(), p.get("tsize", 24), w - (tx - x) - 20), fill=A(COL["white"], a), anchor="lm")
     elif k == "text":
         f = FONTS[p.get("font", "bold")](p.get("size", 36)); anc = {"l": "la", "c": "ma", "r": "ra"}[p.get("align", "l")]
         lines = wrap(d, p["text"], f, p["maxw"]) if p.get("maxw") else [p["text"]]
@@ -276,11 +278,11 @@ def draw_obj(d, img, ob, t, spec):
     elif k == "brush":
         brush_text(img, x, y, p["parts"], p.get("size", 56), a)
     elif k == "chip":
-        f = BOLD(p.get("size", 26)); w = d.textlength(p["text"], font=f) + 36; c = col(p.get("color", "cyan"))
+        f = fit_font(BOLD, p["text"], p.get("size", 26), 900); w = d.textlength(p["text"], font=f) + 36; c = col(p.get("color", "cyan"))
         rr(d, [x - w / 2, y - 24, x + w / 2, y + 24], fill=A(c, a) if p.get("filled", True) else A(PANEL, a), outline=A(c, a), width=2, radius=24)
         d.text((x, y), p["text"], font=f, fill=A(COL["dark"] if p.get("filled", True) else c, a), anchor="mm")
     elif k == "question":
-        f = BOLD(p.get("size", 30)); w = d.textlength(p["text"], font=f) + 100
+        f = fit_font(BOLD, p["text"], p.get("size", 30), 840); w = d.textlength(p["text"], font=f) + 100
         rr(d, [x - w / 2, y - 34, x + w / 2, y + 34], fill=A((12, 14, 24), a), outline=A(EDGE, a), width=2, radius=34)
         d.text((x - w / 2 + 32, y), p["text"], font=f, fill=A(COL["white"], a), anchor="lm")
         d.ellipse([x + w / 2 - 54, y - 20, x + w / 2 - 14, y + 20], fill=A(COL["pink"], a)); d.text((x + w / 2 - 34, y), "?", font=BOLD(26), fill=A(COL["white"], a), anchor="mm")
@@ -288,7 +290,7 @@ def draw_obj(d, img, ob, t, spec):
         draw_icon(d, p["name"], x, y, p.get("size", 80), col(p.get("color", "white")), a)
     elif k == "meter":
         w, h = p["w"], p.get("h", 26); segs = p.get("segs", 36); v = clamp(p.get("value", 0)); c = col(p.get("color", "pink"))
-        if p.get("label"): d.text((x, y - 4), p["label"].upper(), font=BOLD(22), fill=A(COL["white"], a), anchor="ls")
+        if p.get("label"): d.text((x, y - 4), p["label"].upper(), font=fit_font(BOLD, p["label"].upper(), 22, w), fill=A(COL["white"], a), anchor="ls")
         sw_ = w / segs
         for i in range(segs):
             on = (i + 0.5) / segs <= v
@@ -318,7 +320,7 @@ def draw_obj(d, img, ob, t, spec):
         for i in range(cols * rows):
             cx, cy = x + (i % cols) * cw, y + (i // cols) * ch
             d.rounded_rectangle([cx + 2, cy + 2, cx + cw - 2, cy + ch - 2], radius=3, fill=A(c, a) if i < n else A((38, 42, 62), a))
-        if p.get("label"): d.text((x, y - 12), p["label"], font=BOLD(24), fill=A(COL["white"], a), anchor="ls")
+        if p.get("label"): d.text((x, y - 12), p["label"], font=fit_font(BOLD, p["label"], 24, w), fill=A(COL["white"], a), anchor="ls")
     elif k == "arrow":
         pts = [tuple(q) for q in p["points"]]; prog = ease((t - ob.t0) / p.get("dur", 0.6)); c = col(p.get("color", "gray"))
         total = sum(math.dist(pts[i], pts[i + 1]) for i in range(len(pts) - 1)); goal = total * prog; acc = 0; drawn = [pts[0]]

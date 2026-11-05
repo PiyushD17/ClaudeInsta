@@ -16,22 +16,29 @@ SPEC = {
         ("So before you retrain an AI model on your documents, ask whether RAG can retrieve them instead. Follow for one tech topic a day."),
     ],
     "scenes": [
-        {"type": "hook", "kicker": "TECH IN A BITE", "big1": "Stop retraining AI models", "big2": "on your documents.", "sub": "Try RAG first.", "size1": 84, "size2": 90},
         {"type": "stage", "objects": [
-            {"kind": "brush", "id": "t1", "t": -0.3, "x": 540, "y": 380, "parts": [("Language models: ", "white"), ("static training data", "amber")], "size": 50},
-            {"kind": "panel", "id": "llm", "x": 90, "y": 520, "w": 900, "h": 330, "title": "Large language model (LLM)", "icon": "database", "color": "purple", "t": "w1"},
-            {"kind": "meter", "id": "train", "x": 130, "y": 640, "w": 820, "h": 34, "value": 0.0, "label": "Training data of an AI language model", "color": "mint", "t": "w4"},
-            {"kind": "chip", "id": "cut", "x": 540, "y": 770, "text": "Cut-off date: no newer facts", "color": "amber", "t": "w10"}],
+            {"kind": "text", "id": "k", "t": -0.5, "x": 540, "y": 285, "text": "TECH IN A BITE", "size": 30, "color": "amber", "align": "c", "font": "med"},
+            {"kind": "text", "id": "h1", "t": -0.5, "x": 540, "y": 330, "text": "Stop retraining AI models on your documents.", "size": 66, "color": "white", "align": "c", "maxw": 900},
+            {"kind": "text", "id": "h2", "t": "w8", "x": 540, "y": 520, "text": "Try RAG first.", "size": 72, "color": "amber", "align": "c"},
+            {"kind": "panel", "id": "docs", "t": 0.0, "x": 70, "y": 660, "w": 380, "h": 250, "title": "Example: 5 document files", "icon": "folder"},
+            {"kind": "grid", "id": "g", "t": 0.1, "x": 100, "y": 750, "w": 320, "h": 70, "cols": 5, "rows": 1, "n": 5, "color": "gray"},
+            {"kind": "panel", "id": "llm2", "t": 0.0, "x": 520, "y": 660, "w": 490, "h": 250, "title": "AI language model", "icon": "chat", "color": "purple"},
+            {"kind": "arrow", "id": "a1", "t": 0.8, "points": [(450, 790), (520, 790)], "color": "mint"}]},
+        {"type": "stage", "objects": [
+            {"kind": "brush", "id": "t1", "t": -0.3, "x": 540, "y": 420, "parts": [("Language models: ", "white"), ("static training data", "amber")], "size": 46},
+            {"kind": "meter", "id": "train", "x": 548, "y": 770, "w": 440, "h": 34, "value": 0.0, "label": "Its training data", "color": "mint", "t": "w4"},
+            {"kind": "chip", "id": "cut", "x": 765, "y": 860, "text": "Cut-off date: no newer facts", "color": "amber", "t": "w10"}],
+         "clear": ["k", "h1", "h2", "docs", "g", "a1"],
          "events": [{"id": "train", "t": "w4", "dur": 1.6, "set": {"value": 1.0}}]},
         {"type": "stage", "objects": [
-            {"kind": "terminal", "id": "chat", "x": 90, "y": 900, "w": 900, "h": 240, "title": "Example: chatbot without RAG", "size": 25, "cps": 40, "t": 0.3,
+            {"kind": "terminal", "id": "chat", "x": 90, "y": 950, "w": 900, "h": 210, "title": "Example: chatbot without RAG", "size": 25, "cps": 40, "t": 0.3,
              "lines": [{"text": "(Your refund policy is not in its training data.)", "color": "gray"},
                        {"text": "$ Ask: What is our refund policy?", "type": True, "color": "white"},
                        {"text": "Answer: Refunds are allowed at any time.", "color": "red", "hl": True}]},
-            {"kind": "badge", "id": "bad", "x": 940, "y": 1070, "name": "cross", "size": 54, "t": "w16"}]},
+            {"kind": "badge", "id": "bad", "x": 940, "y": 1100, "name": "cross", "size": 54, "t": "w16"}]},
         {"type": "stage", "objects": [
             {"kind": "question", "id": "q", "x": 540, "y": 330, "text": "How does the chatbot find the 1 relevant page in your documents?", "size": 26, "t": 0.2}],
-         "clear": ["t1", "llm", "train", "cut", "chat", "bad"]},
+         "clear": ["t1", "llm2", "train", "cut", "chat", "bad"]},
         {"type": "stage", "objects": [
             {"kind": "brush", "id": "t2", "x": 540, "y": 440, "parts": [("RAG: ", "cyan"), ("retrieval-augmented generation", "white")], "size": 44},
             {"kind": "panel", "id": "docs", "x": 70, "y": 560, "w": 380, "h": 330, "title": "Example: 5 document files", "icon": "folder", "t": 0.3},
