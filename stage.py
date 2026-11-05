@@ -68,7 +68,7 @@ EDGE = (58, 64, 82)
 PANEL = SHADES[0]
 MIN_TEXT = 24                                            # px: nothing on screen is smaller (phone readability)
 ZONE = (30, 290, 1050, 1420)                             # content zone: below the @tag, above the Instagram caption area
-CHECK = {"on": False, "issues": [], "boxes": {}}
+CHECK = {"on": False, "issues": [], "boxes": {}, "typed": {}}
 
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def ease(u): u = clamp(u); return 1 - (1 - u) ** 3
@@ -528,6 +528,7 @@ def draw_obj(d, img, ob, t):
                     cur = wd
             wl.append(cur)
             n = _typed(t, start, txt, cps) if typed else len(txt)
+            if CHECK["on"]: CHECK["typed"][id(ob)] = CHECK["typed"].get(id(ob), 0) + n
             shown_total = n; ystart = yy
             if ln.get("hl"):
                 rr(d, [x + 14, yy - 6, x + w - 14, yy + len(wl) * lh - 2], fill=A(col(ln.get("hlcolor", "pink")), 0.25 * a), outline=A(col(ln.get("hlcolor", "pink")), a), width=2, radius=8)
@@ -602,6 +603,7 @@ def draw_obj(d, img, ob, t):
         rr(d, [x + 100, y + 60, x + w - 16, y + 102], fill=A((22, 24, 30), a), radius=20)
         sch = p.get("scheme", ""); url = p.get("url", "")
         n = _typed(t, ob.t0 + 0.3, url, p.get("cps", 18)) if p.get("type", True) else len(url)
+        if CHECK["on"]: CHECK["typed"][id(ob)] = n
         f = UI(26); xx = x + 120
         if sch: d.text((xx, y + 81), sch, font=f, fill=A(COL["amber"], a), anchor="lm"); xx += f.getlength(sch) + 6
         d.text((xx, y + 81), url[:n], font=f, fill=A(COL["white"], a), anchor="lm")
@@ -750,7 +752,7 @@ def draw_obj(d, img, ob, t):
 
 def render(d, img, t, spec, line_starts):
     """Draw every alive stage object at absolute time t, in spec order (later = on top)."""
-    if CHECK["on"]: CHECK["boxes"] = {}
+    if CHECK["on"]: CHECK["boxes"] = {}; CHECK["typed"] = {}
     for ob in build(spec, line_starts):
         draw_obj(d, img, ob, t)
 
@@ -798,9 +800,13 @@ def layout_check(spec, line_starts, dur, mascot_box=None, step=0.25, draw_cls=No
                     if _overlap(CHECK["boxes"][id(a_)], CHECK["boxes"][id(b_)]):
                         add("FAIL", "OVERLAP", f"{a_.id} and {b_.id} overlap at {t:.1f}s (nest one inside the other with \"in\", or move them apart)", ("OV", a_.id, b_.id))
             # visible change rhythm (reference: something changes every 2-3 s)
-            sig = tuple((id(ob), round(ob.alpha(t), 1), str(sorted((k, str(v)) for k, v in ob.props(t).items() if k not in ("lines",)))) for ob in vis)
-            typing = any(ob.kind in ("terminal", "browser") and ob.alpha(t) > 0 for ob in objs)
-            if sig != prev_sig or typing: last_change = t
+            def _motion(ob):
+                if ob.kind == "packet": return round(clamp((t - ob.t0) / ob.o.get("dur", 1.0)), 1)
+                if ob.kind in ("terminal", "browser"): return CHECK["typed"].get(id(ob), 0)
+                if ob.kind == "seq": return sum(1 for m in ob.o.get("msgs", []) if t >= m["_at"])
+                return 0
+            sig = tuple((id(ob), round(ob.alpha(t), 1), round(ob.dim(t), 1), _motion(ob), str(sorted((k, str(v)) for k, v in ob.props(t).items() if k not in ("lines",)))) for ob in vis)
+            if sig != prev_sig: last_change = t
             elif t - last_change > 4.0 and vis: add("WARN", "STATIC", f"nothing on the stage changes between {last_change:.1f}s and {t:.1f}s: add a visible state change", ("ST", round(last_change, 1)))
             prev_sig = sig
             t += step

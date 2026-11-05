@@ -7,10 +7,6 @@
    ]
   },
   {
-   "use": "fixed window",
-   "never_say": []
-  },
-  {
    "use": "token bucket",
    "never_say": []
   },
@@ -31,6 +27,16 @@
   {
    "use": "concurrent requests limiter",
    "never_say": []
+  },
+  {
+   "use": "fixed window",
+   "never_say": []
+  },
+  {
+   "use": "sliding window counter",
+   "never_say": [
+    "smoother window"
+   ]
   }
  ],
  "counts": {},
@@ -61,7 +67,7 @@
   "Stripe",
   "Cloudflare"
  ],
- "length_reason": "About 110 s on purpose: a technical deep dive (counter, atomic Redis script, window edge, window formula, 429 and Retry-After, token bucket, other limiter types) with a real command, formula or header in every part.",
+ "length_reason": "About 118 s on purpose: a technical deep dive with a real artefact in every part (redis-cli INCR, a crash between INCR and EXPIRE, the Lua script, the fixed-window edge, the sliding window counter formula, PTTL and the 429 with Retry-After, the token bucket, Stripe's other limiters).",
  "illustrative_numbers": [
   "0",
   "1",
@@ -72,6 +78,11 @@
   "20",
   "3",
   "3600",
+  "4",
+  "5",
+  "6",
+  "6.5",
+  "6500",
   "7",
   "8",
   "9"
@@ -88,11 +99,6 @@
    "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
   },
   {
-   "say": "In Redis, a fixed-window limiter keeps one string key per window and bumps it with INCR.",
-   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
-   "quote": "STRING \u2014 one key per window, using INCR to bump the count and EXPIRE to auto-clean the key. A Lua script wraps both commands into a single atomic EVAL call."
-  },
-  {
    "say": "The key includes the window number, so a new window starts a fresh count.",
    "source": "https://redis.io/tutorials/howtos/ratelimiting/",
    "quote": "The counter key includes the window number, so a new window automatically starts a fresh count."
@@ -101,16 +107,6 @@
    "say": "INCR creates the key at 1 if it does not exist, otherwise it increments (example output (integer) 1).",
    "source": "https://redis.io/tutorials/howtos/ratelimiting/",
    "quote": "INCR creates or increments. If the key doesn't exist, INCR creates it at 1. Otherwise it increments."
-  },
-  {
-   "say": "Two concurrent requests can both read the same count and both be allowed (TOCTOU race); example numbers 9 and 10 are illustrative.",
-   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
-   "quote": "If these steps run as separate Redis commands, concurrent requests can read the same state, both decide they're allowed, and both write back \u2014 bypassing the limit. This is a TOCTOU (time-of-check-time-of-use) race condition"
-  },
-  {
-   "say": "Run INCR and EXPIRE inside a single Lua EVAL call; Redis executes Lua scripts atomically, so no other command can interleave.",
-   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
-   "quote": "The entire increment-and-expire sequence runs inside a single EVAL call. Redis executes Lua scripts atomically, so no other command can interleave between the INCR and the EXPIRE."
   },
   {
    "say": "EXPIRE is set when count == 1, the first request in a new window.",
@@ -138,7 +134,7 @@
    "quote": "This algorithm assumes a constant rate of requests during the previous sampling period (which can be any time span), this is why the result is only an approximation of the actual rate."
   },
   {
-   "say": "In an analysis of 400 million requests, 0.003% were wrongly allowed or rate limited.",
+   "say": "In Cloudflare's analysis of 400 million requests, 0.003% were wrongly allowed or rate limited.",
    "source": "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/",
    "quote": "It is still very accurate, as an analysis on 400 million requests from 270,000 distinct sources shown: 0.003% of requests have been wrongly allowed or rate limited"
   },
@@ -193,14 +189,54 @@
    "quote": "Build 5 Rate Limiters with Redis: Fixed Window, Sliding Window, Token Bucket, and Leaky Bucket"
   },
   {
-   "say": "The limit check belongs inside the same atomic script as INCR and EXPIRE (race condition otherwise).",
-   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
-   "quote": "Redis executes Lua scripts atomically on the server. No other command runs between the script's reads and writes."
-  },
-  {
    "say": "The 429 example response is the one in RFC 6585.",
    "source": "https://datatracker.ietf.org/doc/html/rfc6585",
    "quote": "RFC 6585 Additional HTTP Status Codes"
+  },
+  {
+   "say": "A Redis fixed-window limiter keeps one string key per window and bumps it with INCR.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "STRING \u2014 one key per window, using INCR to bump the count and EXPIRE to auto-clean the key. A Lua script wraps both commands into a single atomic EVAL call."
+  },
+  {
+   "say": "A fixed window rate limiter counts requests within discrete time intervals.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "A fixed window rate limiter counts requests within discrete, non-overlapping time intervals. It is the simplest Redis rate limiting algorithm."
+  },
+  {
+   "say": "INCR gives each concurrent caller a unique, sequential count.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "INCR creates or increments. If the key doesn't exist, INCR creates it at 1. Otherwise it increments. Each concurrent caller gets a unique, sequential count."
+  },
+  {
+   "say": "A crash between 2 Redis commands (INCR and EXPIRE) can leave a key with no expiry, so it is never auto-cleaned (keys leak).",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "STRING \u2014 one key per window, using INCR to bump the count and EXPIRE to auto-clean the key. ... Without this, a crash between the two commands could leave a key with no expiry"
+  },
+  {
+   "say": "So run INCR and EXPIRE in one Lua script with EVAL; Redis executes Lua scripts atomically.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "The entire increment-and-expire sequence runs inside a single EVAL call. Redis executes Lua scripts atomically, so no other command can interleave between the INCR and the EXPIRE."
+  },
+  {
+   "say": "Lua scripts call Redis commands with redis.call(); keys arrive in KEYS and other arguments in ARGV (example script uses redis.call('INCR', KEYS[1]) and redis.call('EXPIRE', KEYS[1], ARGV[1])).",
+   "source": "https://redis.io/docs/latest/develop/programmability/eval-intro/",
+   "quote": "It is possible to call Redis commands from a Lua script either via redis.call() or redis.pcall(). The execution context makes arguments available to the script through KEYS and ARGV global runtime variables. > EVAL \"return redis.call('SET', KEYS[1], ARGV[1])\" 1 foo bar"
+  },
+  {
+   "say": "A sliding window counter blends two fixed-window counters (uses the previous counter) to approximate a sliding window.",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "A sliding window counter rate limiter blends two fixed-window counters using a weighted average to approximate a true sliding window."
+  },
+  {
+   "say": "Cloudflare uses the previous counter to approximate the rate (sliding windows).",
+   "source": "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/",
+   "quote": "Sliding windows to the rescue. But actually, can't we just use the information from the previous counter in order to extrapolate an accurate approximation of the request rate?"
+  },
+  {
+   "say": "Retry-After here comes from the key's remaining time to live (PTTL, in milliseconds; example value 6500 ms rounds up to 7 s).",
+   "source": "https://redis.io/tutorials/howtos/ratelimiting/",
+   "quote": "PTTL for retry-after. The script also fetches the key's remaining TTL in milliseconds."
   }
  ]
 }

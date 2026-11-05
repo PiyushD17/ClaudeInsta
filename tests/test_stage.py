@@ -93,4 +93,9 @@ def mint_pixels(t):
     img = reel.frame(t).convert("RGB")
     return sum(1 for x in range(80, 400) for y in range(1080, 1110, 2) if img.getpixel((x, y))[1] > 180 and img.getpixel((x, y))[0] < 150)
 assert mint_pixels(l2[0] + 1.1) == 0 and mint_pixels(l2[0] + 1.9) > 20     # "(integer) 4" appears at word 6 (1.25 s), not before
+# 7. a terminal that does not change is not "motion": STATIC is reported
+sp7, l7 = make([{"type": "stage", "objects": [
+    {"kind": "terminal", "id": "tm", "x": 60, "y": 600, "w": 960, "h": 260, "title": "redis-cli", "lines": [{"text": "> PING", "color": "white"}]}]}],
+    lines=["one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone twentytwo"])
+assert "STATIC" in codes(sp7, l7), codes(sp7, l7)
 print("OK: stage engine v2 - anchors, tweens, persistence, clear, wrapping, layout check, line anchors.")
