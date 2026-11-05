@@ -1,22 +1,63 @@
-# Style guide: technical story videos (set from two reference explainers with thousands of views)
+# Style guide: technical story reels (v2, measured frame by frame from the two reference videos)
 
-The reference videos are long narrated diagram explainers. What made them work, and how our pipeline reproduces it:
+The owner's references are two ~2:40 explainers with thousands of views ("what happens when you open google.com" and "why deleting a Docker
+container doesn't free your disk"). They were sampled every 3 seconds. This guide writes down what they do, as rules our renderer
+(`stage.py`) and checker (`check_spec.py`) enforce. The model spec is `specs/day11_rate_limiter.py`.
 
-1. **One persistent canvas.** A single diagram builds up over the whole video and keeps its state (a bar filled in chapter 2 is still there in chapter 5). Use `"type": "stage"` scenes (`stage.py`). Objects live until a scene `clear`s them. Never reset the whole screen between lines unless the chapter really changes.
-2. **Real mechanism, not a summary.** Every step shows the thing an engineer would actually see: a real command, query, config key, API field, default value or number, taken from the official docs and quoted in the facts file. "Converted to numerical representations" is a summary; `text-embedding-3-small returns 1536 numbers` and the `SELECT ... ORDER BY embedding <-> '[3,1,2]' LIMIT 5;` query are the mechanism.
-3. **Audience: mature, knows the basics.** Do not spend the opening on "why does this exist" or on a debate they already settled. The hook promises what goes into building or running the thing ("What actually goes into building a RAG system? 4 steps, with real code."). At most one short line of problem setup.
-4. **A skeleton, then depth.** Name the steps/components once (numbered dots stay at the top, the active dot moves), then go deep on each in order. The order on screen equals the order of the words.
-5. **Questions as second hooks.** A question pill appears 25-65% in and is answered by a later line (the rehook gate).
-6. **Concrete example, labelled.** One worked example, identical everywhere. Invented values are labelled "Example" or "Illustration". Real values carry their source.
-7. **Terminal blocks for code.** Typed commands, highlighted result lines. Text in mono, large enough for a phone (>= 24 px), always inside its box (stage.py shrinks text to fit; still check).
-8. **Colour has meaning.** Amber = the data/input being worked on, cyan = storage/infra, mint = good/result, pink = problem/step 3, purple = model/compute. Keep the same colour for the same thing in every scene.
-9. **Clean lettering.** Plain bold titles, no wavy underlines, no wobble. Titles that name the topic. Nothing decorative that makes text harder to read.
-10. **Frame 0 is the story.** The first frame already shows the hook text plus the diagram the story builds on, not a separate title card.
-11. **Voice only.** Music is optional and kept very low (the owner mixes the voice in). Never burn in captions.
-12. **No dead screens.** Every scene has something on screen from its first moment (objects start at t = -0.2/-0.3 relative to the line); old objects fade out before new ones appear (stage.py does this for `clear`).
-13. **Trade-off or failure mode before the end.** One true, sourced "catch" (limit, cost, failure case), then a recap of the steps and the closing line "Follow for one tech topic a day."
-14. **Generic icons only.** No brand logos or trademarked marks.
+## 1. The screen shows objects and state. The voice explains.
+- Reference frames contain almost no sentences. They show **things**: a browser window with a URL bar, a server, a disk bar reading "100 GB used",
+  a folder tab "/var/lib/postgresql", a terminal with real output, packets with `GET / HTTP/1.1`, status pills "ESTABLISHED", "SYN", "ACK".
+- Every explanation lives in the narration; the screen proves it with an object changing state (a counter goes 9 -> 10, a bar fills, a row is
+  highlighted, a packet bounces back with 429).
+- Rule: object labels are 1-4 words (checker FAIL above 6); titles/questions/notes at most 9 words; never a sentence inside a box.
 
-Layout: content between y=300 and y=1250, x within 70-1010; mascot (size ~150, x 900, y 1300) never overlaps content; the lower third stays calm.
+## 2. Every box has contents, and boxes nest.
+- Reference B: BUILD SERVER DISK > TEST PIPELINE > CONTAINER > WRITABLE LAYER / POSTGRES IMAGE, next to VOLUME > DATA FOLDER > "orders".
+- Rule: a panel taller than 100 px must contain objects (`"in": "<panel id>"`) or a `body` illustration; header-only strips are `compact`
+  (checker EMPTY_BOX). Children must stay inside their parent (OUTSIDE_PARENT). Inner boxes use a lighter shade (`level` 1-2).
+- Reuse the same objects all video long. The diagram is built in the first seconds and then only changes state; it is never thrown away
+  without a reason (a new chapter that needs a different picture).
 
-Length: as short as the mechanism allows. 50 s when one mechanism fits; otherwise up to 150 s (hard maximum). Voiceover characters are limited by the owner's free ElevenLabs credits, so keep the script <= 2000 characters and always state the character count in the delivery summary.
+## 3. Text never leaves its box.
+- The engine wraps every text onto new lines inside its box (panel labels up to 2 lines, pills 2 lines, terminal lines with a hanging indent).
+  It shrinks only down to 24 px; if it still does not fit, the checker FAILS (TEXT_OVERFLOW). Fix by shortening the words or making the box bigger.
+- Nothing overlaps unless nested (OVERLAP). Packets and arrows are the only overlays.
+
+## 4. Typography and colour
+- Labels, titles, notes: heavy italic caps (Inter Display Black Italic; drop an OFL brush font such as Permanent Marker into `fonts/brush.ttf`
+  to get the hand-lettered look - the engine uses it automatically). Values and code: mono. UI text: Inter SemiBold.
+- Sizes at 1080 px width: titles 44-54, panel labels 30, terminal 27-29, pills 26-28, never below 24.
+- One colour per concept for the whole video (reference A: TCP cyan, HTTP amber, TLS pink, IP purple). Pink = problem/over limit,
+  mint = OK/result, amber = the data being counted, cyan = storage/infra, purple = second actor.
+- Titles: a short straight underline. No wavy lines, no wobble.
+
+## 5. Layout grid (1080 x 1920)
+- y 262: @TECHINABITE tag; mascot small at the top-right (x 1000, y 300, size 90), like the reference logo.
+- y 290-510: title area: step dots (y 335) and the chapter title (y 440) or the question pill (y ~466).
+- y 540-940: the main diagram (persistent).
+- y 975-1375: the lower area: a terminal with real commands/output, or a second diagram (e.g. two time windows).
+- Below 1420: empty on purpose (Instagram caption and buttons cover it). Checker OUT_OF_ZONE outside x 30-1050, y 290-1420.
+
+## 6. Motion: something changes every 2-3 seconds, exactly on its word.
+- Every object and every terminal line is anchored to the word that introduces it (`wi(line, "word")`, terminal lines `"at"`).
+- Focus: when the story is about one part, the rest dims (`"focus": ["limiter", "steps"]`); `"focus": []` brings everything back.
+- Highlight the thing being talked about: dashed pink outline (`hl`), highlighted terminal row (`hl`), highlighted flag (`flag`).
+- Checker WARN STATIC if nothing visible changes for more than 4 s.
+
+## 7. Story structure (both references)
+- Open on the topic's real setting: the diagram is on screen at frame 0 together with the hook (no title card).
+- Name the steps once with numbered dots and walk them in order; the active dot moves.
+- A question pill in the middle (the rehook) that the next scene answers on the diagram.
+- Real artefacts in the terminal: commands and their real output from official docs (e.g. `> INCR mykey` / `(integer) 11`), with the
+  important row or flag highlighted; worked numbers exactly as the source gives them.
+- End: recap dots, then a blurred background with a follow card that gets clicked.
+
+## 8. Mascot and brand
+- Header tag "@TECHINABITE", first scene shows "TECH IN A BITE". Mascot `assets/mascot.png`, small, top-right, never over content.
+- No third-party logos (the references use Google/Docker/Postgres logos; we use generic icons).
+
+## 9. What failed before (do not repeat)
+- Empty panels with a long title squeezed into the header; text running out of the box (Nov 2026 owner feedback).
+- Walls of chips and sentences on screen; titles that explain instead of label.
+- Wavy underlines/wobbly letters; a separate hook card that did not belong to the story.
+- Visuals ahead of the voice; stale objects left on screen after their scene.

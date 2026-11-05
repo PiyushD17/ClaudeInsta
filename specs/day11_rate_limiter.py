@@ -16,13 +16,25 @@ LINES = [
 ]
 
 def wi(line, token, k=1):
-    ws = [w.strip(".,:?").lower() for w in LINES[line - 1].split()]
+    """'wN' anchor: the k-th word of script line `line` (1-based) that starts with `token`."""
+    ws = [w.strip(".,:?\"").lower() for w in LINES[line - 1].split()]
     hits = [i + 1 for i, w in enumerate(ws) if w.startswith(token.lower())]
     return "w%d" % hits[k - 1]
 
-DOTS = lambda act, t=-0.3: {"kind": "dots", "id": "steps", "x": 540, "y": 345, "n": 4, "active": act, "t": t}
-DLABEL = {"kind": "text", "id": "dl", "x": 540, "y": 392, "text": "Rate limiter building blocks", "size": 22, "color": "gray", "align": "c", "font": "med", "t": -0.3}
-TITLE = lambda i, parts, size=42, y=458: {"kind": "brush", "id": "t%d" % i, "t": -0.2, "x": 540, "y": y, "parts": parts, "size": size}
+# ---- layout grid (1080 x 1920): title area y 290-510, diagram y 540-940, lower area (terminal) y 975-1375, mascot top-right next to the @tag
+TITLE = lambda i, parts, size=44, y=440: {"kind": "title", "id": "t%d" % i, "t": -0.25, "x": 540, "y": y, "parts": parts, "size": size, "maxw": 820}
+DY, DH = 540, 400
+LOW = dict(x=40, y=975, w=1000, h=400)
+CLIENT = (155, DY + 350); LIMIT_IN = (330, DY + 350); SERVER = (925, DY + 350)
+
+def pkt(pid, t, color="mint", text="GET", to="server", out=None):
+    path = [CLIENT, LIMIT_IN] if to == "limiter" else ([CLIENT, SERVER] if to == "server" else [LIMIT_IN, CLIENT])
+    o = {"kind": "packet", "id": pid, "t": t, "path": path, "text": text, "color": color, "dur": 1.1 if to != "server" else 1.6, "hold": to == "limiter", "w": 96, "h": 44}
+    if out is not None: o["out"] = out
+    return o
+
+def term(tid, title, lines, t=-0.2, size=29, h=None, cps=36):
+    return {"kind": "terminal", "id": tid, "t": t, "x": LOW["x"], "y": LOW["y"], "w": LOW["w"], "h": h or LOW["h"], "title": title, "size": size, "cps": cps, "lines": lines}
 
 SPEC = {
     "tag": "@TECHINABITE",
@@ -30,127 +42,168 @@ SPEC = {
     "captions": False,
     "format": "story",
     "music": {"bpm": 104, "seed": 11, "variant": 1},
-    "mascot": {"x": 900, "y": 1300, "size": 150},
+    "mascot": {"x": 1000, "y": 300, "size": 90},
     "lines": LINES,
     "scenes": [
-        # 1 hook + base diagram
+        # 1 hook: the diagram the whole story runs on is there from frame 0
         {"type": "stage", "objects": [
-            {"kind": "text", "id": "k", "t": -0.5, "x": 540, "y": 285, "text": "TECH IN A BITE", "size": 30, "color": "amber", "align": "c", "font": "med"},
-            {"kind": "text", "id": "h1", "t": -0.5, "x": 540, "y": 330, "text": "What actually goes into your rate limiter?", "size": 64, "color": "white", "align": "c", "maxw": 900},
-            {"kind": "text", "id": "h2", "t": wi(1, "1"), "x": 540, "y": 500, "text": "1 Redis script, 1 formula, 1 HTTP header.", "size": 46, "color": "amber", "align": "c", "maxw": 900},
-            {"kind": "panel", "id": "cl", "t": 0.0, "x": 70, "y": 700, "w": 260, "h": 230, "title": "API client sending requests", "icon": "user"},
-            {"kind": "panel", "id": "rl", "t": 0.0, "x": 400, "y": 700, "w": 290, "h": 230, "title": "Rate limiter for API requests", "icon": "gear", "color": "amber"},
-            {"kind": "panel", "id": "api", "t": 0.0, "x": 760, "y": 700, "w": 250, "h": 230, "title": "Your API gets requests", "icon": "server", "color": "cyan"},
-            {"kind": "arrow", "id": "a1", "t": 0.6, "points": [(330, 815), (400, 815)], "color": "mint"},
-            {"kind": "arrow", "id": "a2", "t": 0.8, "points": [(690, 815), (760, 815)], "color": "mint"}]},
-        # 2 what a rate limiter does
+            {"kind": "label", "id": "k", "t": -0.5, "x": 540, "y": 292, "text": "TECH IN A BITE", "size": 28, "color": "amber", "align": "c", "font": "med"},
+            {"kind": "title", "id": "h1", "t": -0.5, "x": 540, "y": 326, "parts": [("What actually goes into\nyour ", "white"), ("rate limiter?", "amber")], "size": 54, "maxw": 820, "underline": False},
+            {"kind": "title", "id": "h2", "t": wi(1, "1"), "x": 540, "y": 482, "parts": [("1 Redis script · 1 formula · 1 HTTP header", "mint")], "size": 34, "underline": False, "maxw": 820},
+            {"kind": "panel", "id": "client", "t": -0.4, "x": 40, "y": DY, "w": 230, "h": DH, "label": "Client", "icon": "user", "body": "user", "body_color": "gray"},
+            {"kind": "panel", "id": "limiter", "t": -0.3, "x": 300, "y": DY, "w": 480, "h": DH, "label": "Rate limiter", "icon": "gear", "color": "amber", "value": "0/10"},
+            {"kind": "grid", "id": "win", "in": "limiter", "t": -0.3, "x": 330, "y": DY + 130, "w": 420, "h": 80, "cols": 10, "rows": 1, "n": 0, "color": "mint", "label": "Requests in this window"},
+            {"kind": "server", "id": "server", "t": -0.2, "x": 810, "y": DY, "w": 230, "h": DH, "label": "API server", "color": "cyan"},
+            pkt("p1", wi(1, "redis"), "mint"), pkt("p2", wi(1, "formula"), "mint"), pkt("p3", wi(1, "http"), "mint")],
+         "events": [{"id": "win", "t": wi(1, "formula"), "dur": 0.3, "set": {"n": 1}}, {"id": "win", "t": wi(1, "http"), "dur": 0.3, "set": {"n": 2}}, {"id": "win", "t": wi(1, "header"), "dur": 0.3, "set": {"n": 3}},
+                    {"id": "limiter", "t": wi(1, "formula"), "dur": 0.0, "set": {"value": "1/10"}}, {"id": "limiter", "t": wi(1, "http"), "dur": 0.0, "set": {"value": "2/10"}}, {"id": "limiter", "t": wi(1, "header"), "dur": 0.0, "set": {"value": "3/10"}}]},
+        # 2 what it does: requests pass, then too many are stopped
         {"type": "stage", "objects": [
-            TITLE(2, [("Rate limiting: ", "white"), ("too many requests", "pink")], 44),
-            {"kind": "meter", "id": "load", "x": 90, "y": 560, "w": 900, "h": 30, "value": 0.1, "segs": 30, "label": "Requests from one client in a given amount of time", "color": "mint", "t": wi(2, "sending")},
-            {"kind": "chip", "id": "lim", "x": 540, "y": 1010, "text": "Rate limiter: too many requests are blocked", "color": "pink", "t": wi(2, "many"), "filled": False}],
+            TITLE(2, [("Rate limiting: ", "white"), ("too many requests", "pink")]),
+            pkt("p4", wi(2, "stops"), "mint"), pkt("p5", wi(2, "client"), "mint"),
+            pkt("p6", wi(2, "too"), "pink", "GET", "limiter", out=4.6), pkt("p7", wi(2, "many"), "pink", "GET", "limiter", out=4.6)],
          "clear": ["k", "h1", "h2"],
-         "events": [{"id": "load", "t": wi(2, "sending"), "dur": 2.0, "set": {"value": 0.95, "color": "pink"}}]},
-        # 3 four parts
+         "events": [{"id": "limiter", "t": wi(2, "sending"), "dur": 0.0, "set": {"value": "10/10", "value_color": "pink"}},
+                    {"id": "win", "t": wi(2, "stops"), "dur": 2.4, "set": {"n": 10}}, {"id": "win", "t": wi(2, "too"), "dur": 0.0, "set": {"color": "pink"}}]},
+        # 3 the four building blocks
         {"type": "stage", "objects": [
-            TITLE(3, [("Rate limiter: ", "cyan"), ("its parts", "white")], 44, 400),
-            {"kind": "panel", "id": "p1", "x": 90, "y": 500, "w": 900, "h": 100, "title": "Counter for requests", "color": "amber", "t": wi(3, "counter"), "tsize": 32},
-            {"kind": "panel", "id": "p2", "x": 90, "y": 630, "w": 900, "h": 100, "title": "Atomic check of requests", "color": "cyan", "t": wi(3, "atomic"), "tsize": 32},
-            {"kind": "panel", "id": "p3", "x": 90, "y": 760, "w": 900, "h": 100, "title": "Smoother window for requests", "color": "pink", "t": wi(3, "smoother"), "tsize": 32},
-            {"kind": "panel", "id": "p4", "x": 90, "y": 890, "w": 900, "h": 100, "title": "429 response to requests", "color": "mint", "t": wi(3, "429"), "tsize": 32}],
-         "clear": ["t2", "load", "lim", "cl", "rl", "api", "a1", "a2"]},
-        # 4 part 1: counter
+            {"kind": "dots", "id": "steps", "t": -0.2, "x": 540, "y": 335, "n": 4, "active": -1, "spacing": 220,
+             "labels": ["Counter", "Atomic check", "Window", "429"]}],
+         "clear": ["t2", "p6", "p7"],
+         "events": [{"id": "steps", "t": wi(3, "counter"), "dur": 0.0, "set": {"active": 0}},
+                    {"id": "steps", "t": wi(3, "atomic"), "dur": 0.0, "set": {"active": 1}},
+                    {"id": "steps", "t": wi(3, "smoother"), "dur": 0.0, "set": {"active": 2}},
+                    {"id": "steps", "t": wi(3, "429"), "dur": 0.0, "set": {"active": 3}},
+                    ]},
+        # 4 counter: one Redis key per window
         {"type": "stage", "objects": [
-            DOTS(0),
-            DLABEL,
-            TITLE(4, [("Counter: ", "amber"), ("count requests with INCR", "white")], 40),
-            {"kind": "terminal", "id": "r4", "x": 90, "y": 520, "w": 900, "h": 170, "title": "Example: Redis counter key", "size": 26, "cps": 30, "t": wi(4, "incr"),
-             "lines": [{"text": "INCR ratelimit:user123:7", "type": True, "color": "white", "pause": 1.8},
-                       {"text": "(integer) 1", "color": "mint"}]},
-            {"kind": "terminal", "id": "r4b", "x": 90, "y": 720, "w": 900, "h": 110, "title": "Example: key of the next window", "size": 26, "t": wi(4, "includes"),
-             "lines": [{"text": "ratelimit:user123:8", "color": "amber"}]},
-            {"kind": "chip", "id": "k4", "x": 540, "y": 880, "text": "The window number is part of the key", "color": "amber", "t": wi(4, "includes")},
-            {"kind": "chip", "id": "f4", "x": 540, "y": 950, "text": "A new window starts a fresh count", "color": "mint", "t": wi(4, "fresh"), "filled": False}],
-         "clear": ["t3", "p1", "p2", "p3", "p4"]},
-        # 5 rehook
+            TITLE(4, [("Counter: ", "amber"), ("one key per window", "white")]),
+            {"kind": "store", "id": "redis", "in": "limiter", "t": wi(4, "redis"), "x": 320, "y": DY + 100, "w": 440, "h": 280, "label": "Redis (example)", "rows": []},
+            term("r4", "Example: redis-cli", [
+                {"text": "> INCR ratelimit:user123:7", "type": True, "color": "white", "at": wi(4, "incr")},
+                {"text": "(integer) 1", "color": "mint", "at": wi(4, "creates")},
+                {"text": "> INCR ratelimit:user123:8", "type": True, "color": "white", "at": wi(4, "window", 2)},
+                {"text": "(integer) 1", "color": "mint", "at": wi(4, "fresh")}], t=wi(4, "incr"))],
+         "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 0}},
+                    {"id": "limiter", "t": -0.2, "dur": 0.0, "set": {"value": "", "value_color": "amber"}},
+                    {"id": "redis", "t": wi(4, "key"), "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "-"]], "hl": 0}},
+                    {"id": "redis", "t": wi(4, "if"), "dur": 0.0, "set": {"rows": [], "hl": None}},
+                                        {"id": "redis", "t": wi(4, "creates"), "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "1"]], "hl": 0}},
+                    {"id": "redis", "t": wi(4, "window", 2), "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "1"], ["ratelimit:user123:8", "1"]], "hl": 1}}],
+         "clear": ["win"]},
+        # 5 rehook: two requests read the same count
         {"type": "stage", "objects": [
-            {"kind": "question", "id": "q5", "x": 540, "y": 440, "text": "Can 2 requests read the same count at once?", "size": 30, "t": -0.2},
-            {"kind": "terminal", "id": "r5", "x": 90, "y": 540, "w": 900, "h": 250, "title": "Example: separate read and write steps, limit 10", "size": 26, "t": wi(5, "2"),
-             "lines": [{"text": "Request A reads count: 9 -> allowed", "color": "mint"},
-                       {"text": "Request B reads count: 9 -> allowed", "color": "mint"},
-                       {"text": "Both write back 10: the limit is bypassed", "color": "red", "hl": True}]}],
-         "clear": ["t4", "r4", "r4b", "k4", "f4"]},
-        # 6 part 2: atomic
+            {"kind": "question", "id": "q5", "t": -0.25, "x": 540, "y": 466, "parts": [("2 requests read the same ", "white"), ("count", "amber"), (" at once?", "white")], "size": 34},
+            dict(pkt("pa", wi(5, "2"), "cyan", "A", "limiter", out=4.8), path=[(155, DY + 290), (330, DY + 290)]), pkt("pb", wi(5, "requests"), "purple", "B", "limiter", out=4.8),
+            term("r5", "Example: separate GET and SET commands", [
+                {"text": "A > GET ratelimit:user123:7   -> \"9\"", "color": "cyan", "at": wi(5, "reading")},
+                {"text": "B > GET ratelimit:user123:7   -> \"9\"", "color": "purple", "at": wi(5, "same")},
+                {"text": "A > SET ratelimit:user123:7 10", "color": "cyan", "at": wi(5, "count")},
+                {"text": "B > SET ratelimit:user123:7 10   both allowed", "color": "red", "hl": True, "at": wi(5, "once")}])],
+         "clear": ["t4", "r4"], "focus": ["limiter", "steps"],
+         "events": [{"id": "redis", "t": 0.0, "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "9"]], "hl": 0}},
+                    {"id": "redis", "t": wi(5, "once"), "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "10"]], "value_color": "pink"}}]},
+        # 6 atomic check: one Lua EVAL call
         {"type": "stage", "objects": [
-            TITLE(6, [("Atomic check: ", "cyan"), ("one Lua EVAL call", "white")], 40),
-            {"kind": "terminal", "id": "r6", "x": 90, "y": 520, "w": 900, "h": 270, "title": "Example: Lua script run by EVAL (simplified)", "size": 24, "cps": 34, "t": wi(6, "inside"),
-             "lines": [{"text": "count = INCR key", "type": True, "color": "white"},
-                       {"text": "if count == 1 then EXPIRE key window end", "type": True, "color": "white"},
-                       {"text": "return count <= limit  -- allowed?", "type": True, "color": "mint"}]},
-            {"kind": "chip", "id": "at", "x": 540, "y": 880, "text": "Redis executes Lua scripts atomically", "color": "cyan", "t": wi(6, "atomically")},
-            {"kind": "chip", "id": "il", "x": 540, "y": 955, "text": "No other command can interleave", "color": "cyan", "t": wi(6, "interleave"), "filled": False}],
-         "clear": ["q5", "r5"],
-         "events": [{"id": "steps", "t": 0.0, "dur": 0.5, "set": {"active": 1}}]},
-        # 7 part 3: window edge
+            TITLE(6, [("Atomic check: ", "cyan"), ("one Lua EVAL call", "white")]),
+            term("r6", "Example: EVAL Lua script (simplified)", [
+                {"text": "count = INCR key", "type": True, "color": "white", "at": wi(6, "incr")},
+                {"text": "if count == 1 then EXPIRE key window end", "type": True, "color": "white", "at": wi(6, "expire")},
+                {"text": "return count <= limit", "type": True, "color": "mint", "at": wi(6, "limit")},
+                {"text": "-- one atomic step: no other command can interleave", "color": "gray", "at": wi(6, "atomically")}], cps=40)],
+         "clear": ["q5", "pa", "pb", "r5"], "focus": [],
+         "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 1}},
+                    {"id": "redis", "t": 0.0, "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "9"]], "value_color": "amber", "hl": 0}},
+                    {"id": "limiter", "t": wi(6, "single"), "dur": 0.0, "set": {"hl": True}},
+                    {"id": "redis", "t": wi(6, "executes"), "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "10"]]}}]},
+        # 7 smoother window: the fixed-window edge
         {"type": "stage", "objects": [
-            TITLE(7, [("Smoother window: ", "pink"), ("fixed-window edge problem", "white")], 38),
-            {"kind": "panel", "id": "w1", "x": 70, "y": 520, "w": 450, "h": 230, "title": "Window before the edge", "color": "gray", "t": wi(7, "edge")},
-            {"kind": "panel", "id": "w2", "x": 560, "y": 520, "w": 450, "h": 230, "title": "Window after the edge", "color": "gray", "t": wi(7, "edge")},
-            {"kind": "chip", "id": "b1", "x": 295, "y": 650, "text": "10 requests at second 9", "color": "amber", "t": wi(7, "second", 1)},
-            {"kind": "chip", "id": "b2", "x": 785, "y": 650, "text": "10 requests at second 11", "color": "amber", "t": wi(7, "second", 2)},
-            {"kind": "chip", "id": "b3", "x": 540, "y": 850, "text": "20 requests in 2 seconds", "color": "pink", "t": wi(7, "20")},
-            {"kind": "chip", "id": "b4", "x": 540, "y": 930, "text": "Limit: 10 requests per 10 seconds", "color": "gray", "t": wi(7, "limit"), "filled": False}],
-         "clear": ["t6", "r6", "at", "il"],
-         "events": [{"id": "steps", "t": 0.0, "dur": 0.5, "set": {"active": 2}}]},
-        # 8 previous-counter extrapolation (Cloudflare)
+            TITLE(7, [("Fixed window: ", "pink"), ("the edge problem", "white")]),
+            {"kind": "panel", "id": "w1", "t": wi(7, "fixed"), "x": 40, "y": 975, "w": 490, "h": 400, "label": "Window: seconds 0-10", "icon": "clock", "level": 0},
+            {"kind": "panel", "id": "w2", "t": wi(7, "fixed"), "x": 550, "y": 975, "w": 490, "h": 400, "label": "Window: seconds 10-20", "icon": "clock", "level": 0},
+            {"kind": "grid", "id": "g1", "in": "w1", "t": wi(7, "fixed"), "x": 70, "y": 1110, "w": 430, "h": 70, "cols": 10, "rows": 1, "n": 0, "color": "amber"},
+            {"kind": "grid", "id": "g2", "in": "w2", "t": wi(7, "fixed"), "x": 580, "y": 1110, "w": 430, "h": 70, "cols": 10, "rows": 1, "n": 0, "color": "amber"},
+            {"kind": "pill", "id": "s9", "in": "w1", "t": wi(7, "second"), "x": 285, "y": 1270, "text": "at second 9", "color": "amber", "mono": True},
+            {"kind": "pill", "id": "s11", "in": "w2", "t": wi(7, "second", 2), "x": 795, "y": 1270, "text": "at second 11", "color": "amber", "mono": True}],
+         "clear": ["t6", "r6"], "focus": ["limiter", "steps"],
+         "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 2}},
+                    {"id": "limiter", "t": 0.0, "dur": 0.0, "set": {"hl": False, "value": "10/10s"}},
+                    {"id": "g1", "t": wi(7, "second"), "dur": 0.6, "set": {"n": 10}},
+                    {"id": "g2", "t": wi(7, "second", 2), "dur": 0.6, "set": {"n": 10}},
+                    {"id": "redis", "t": 0.0, "dur": 0.0, "set": {"rows": [["ratelimit:user123:0", "0"], ["ratelimit:user123:1", "0"]], "hl": None}},
+                    {"id": "redis", "t": wi(7, "second"), "dur": 0.0, "set": {"rows": [["ratelimit:user123:0", "10"], ["ratelimit:user123:1", "0"]], "hl": 0}},
+                    {"id": "redis", "t": wi(7, "second", 2), "dur": 0.0, "set": {"rows": [["ratelimit:user123:0", "10"], ["ratelimit:user123:1", "10"]], "hl": 1}},
+                    {"id": "t7", "t": wi(7, "20"), "dur": 0.0, "set": {"parts": [("20 requests ", "pink"), ("in 2 seconds", "white")]}},
+                    {"id": "w1", "t": wi(7, "20"), "dur": 0.0, "set": {"hl": True}},
+                    {"id": "w2", "t": wi(7, "20"), "dur": 0.0, "set": {"hl": True}}]},
+        # 8 Cloudflare's previous-counter estimate
         {"type": "stage", "objects": [
-            TITLE(8, [("Cloudflare: ", "pink"), ("rate limit from the previous counter", "white")], 36),
-            {"kind": "terminal", "id": "r8a", "x": 90, "y": 520, "w": 900, "h": 190, "title": "Example: 50 requests per minute is the limit", "size": 25, "t": wi(8, "with"),
-             "lines": [{"text": "current minute: 18 requests (started 15 s ago)", "color": "gray", "pause": 1.0},
-                       {"text": "previous minute: 42 requests", "color": "gray"}]},
-            {"kind": "terminal", "id": "r8b", "x": 90, "y": 740, "w": 900, "h": 215, "title": "Rate approximation for requests", "size": 25, "cps": 40, "t": wi(8, "rate"),
-             "lines": [{"text": "rate = 42 * ((60-15)/60) + 18", "type": True, "color": "white"},
-                       {"text": "     = 42 * 0.75 + 18", "type": True, "color": "white"},
-                       {"text": "     = 49.5 requests", "type": True, "color": "mint", "hl": True}]}],
-         "clear": ["t7", "w1", "w2", "b1", "b2", "b3", "b4"]},
-        # 9 accuracy
+            TITLE(8, [("Cloudflare: ", "pink"), ("previous counter", "white")]),
+            term("r8", "Cloudflare's example", [
+                {"text": "limit:           50 requests per minute", "color": "gray", "at": wi(8, "limit")},
+                {"text": "current minute:  18 requests, started 15 s ago", "color": "gray", "at": wi(8, "18")},
+                {"text": "previous minute: 42 requests", "color": "gray", "at": wi(8, "42")},
+                {"text": "rate = 42 * ((60-15)/60) + 18", "type": True, "color": "white", "at": wi(8, "minute", 3), "pause": 0.1},
+                {"text": "     = 42 * 0.75 + 18", "type": True, "color": "white", "pause": 0.1},
+                {"text": "     = 49.5 requests", "type": True, "color": "mint", "hl": True, "hlcolor": "mint"}], cps=75)],
+         "clear": ["t7", "w1", "w2", "g1", "g2", "s9", "s11"], "focus": ["limiter", "steps"],
+         "events": [{"id": "limiter", "t": wi(8, "limit"), "dur": 0.0, "set": {"value": "50 / min"}},
+                    {"id": "redis", "t": 0.0, "dur": 0.0, "set": {"rows": [], "hl": None}},
+                    {"id": "redis", "t": wi(8, "18"), "dur": 0.0, "set": {"rows": [["current minute", "18"]], "hl": 0}},
+                    {"id": "redis", "t": wi(8, "42"), "dur": 0.0, "set": {"rows": [["current minute", "18"], ["previous minute", "42"]], "hl": 1}}]},
+        # 9 how accurate the estimate is
         {"type": "stage", "objects": [
-            {"kind": "meter", "id": "acc", "x": 90, "y": 1030, "w": 900, "h": 30, "value": 0.0, "segs": 100, "label": "Requests wrongly allowed or rate limited", "right": "0.003% of 400 million requests", "color": "pink", "t": wi(9, "only")},
-            {"kind": "chip", "id": "ap", "x": 540, "y": 1115, "text": "Cloudflare's estimate is an approximation", "color": "amber", "t": wi(9, "approximation"), "filled": False}]},
-        # 10 part 4: 429
+            TITLE(9, [("400 million requests: ", "white"), ("0.003% wrong", "mint")])],
+         "clear": ["t8"],
+         "events": [{"id": "redis", "t": wi(9, "approximation"), "dur": 0.0, "set": {"rows": [["current minute", "18"], ["previous minute", "42"], ["estimated rate", "49.5"]], "hl": 2}}]},
+        # 10 the response: 429 with Retry-After
         {"type": "stage", "objects": [
-            TITLE(10, [("Response: ", "mint"), ("HTTP 429 Too Many Requests", "white")], 38),
-            {"kind": "terminal", "id": "r10", "x": 90, "y": 520, "w": 900, "h": 220, "title": "Example response to a blocked client", "size": 26, "cps": 36, "t": wi(10, "blocked"),
-             "lines": [{"text": "HTTP/1.1 429 Too Many Requests", "type": True, "color": "red", "pause": 1.3},
-                                              {"text": "Retry-After: 3600", "type": True, "color": "mint"}]},
-            {"kind": "chip", "id": "ra", "x": 540, "y": 830, "text": "Retry-After: how long to wait before retrying", "color": "mint", "t": wi(10, "retry-after"), "filled": False}],
-         "clear": ["acc", "ap", "t8", "r8a", "r8b"],
-         "events": [{"id": "steps", "t": 0.0, "dur": 0.5, "set": {"active": 3}}]},
-        # 11 Retry-After formats
+            TITLE(10, [("Response: ", "mint"), ("HTTP 429", "pink")]),
+            pkt("p429", wi(10, "gets"), "pink", "429", "back", out=6.5),
+            term("r10", "Example response (RFC 6585)", [
+                {"text": "HTTP/1.1 429 Too Many Requests", "type": True, "color": "red", "at": wi(10, "http")},
+                {"text": "Content-Type: text/html", "color": "gray", "at": wi(10, "requests")},
+                {"text": "Retry-After: 3600", "color": "white", "flag": "Retry-After", "flagcolor": "mint", "at": wi(10, "retry-after")}])],
+         "clear": ["t9", "r8"], "focus": ["limiter", "steps", "client"],
+         "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 3}},
+                    {"id": "limiter", "t": 0.0, "dur": 0.0, "set": {"value": "10/10", "value_color": "pink"}},
+                    {"id": "redis", "t": 0.0, "dur": 0.0, "set": {"rows": [["ratelimit:user123:7", "11"]], "hl": 0, "value_color": "pink"}}]},
+        # 11 Retry-After: seconds or a date
         {"type": "stage", "objects": [
-            {"kind": "terminal", "id": "r11a", "x": 90, "y": 880, "w": 900, "h": 100, "title": "Retry-After: seconds to wait", "size": 26, "t": wi(11, "number"),
-             "lines": [{"text": "Retry-After: 120", "color": "mint"}]},
-            {"kind": "terminal", "id": "r11b", "x": 90, "y": 1000, "w": 900, "h": 105, "title": "Retry-After: date to retry after", "size": 26, "t": wi(11, "date"),
-             "lines": [{"text": "Retry-After: Wed, 21 Oct 2015 07:28:00 GMT", "color": "cyan"}]}]},
+            TITLE(11, [("Retry-After: ", "mint"), ("seconds or a date", "white")]),
+            term("r11", "Retry-After: two formats (MDN examples)", [
+                {"text": "Retry-After: 120", "color": "white", "flag": "120", "flagcolor": "mint", "at": wi(11, "number")},
+                {"text": "# seconds to wait", "color": "gray", "at": wi(11, "seconds")},
+                {"text": "Retry-After: Wed, 21 Oct 2015 07:28:00 GMT", "color": "white", "flag": "Wed, 21 Oct 2015 07:28:00 GMT", "flagcolor": "cyan", "at": wi(11, "date")},
+                {"text": "# date after which to retry", "color": "gray", "at": wi(11, "retry", 2)}])],
+         "clear": ["t10", "r10", "p429"]},
         # 12 token bucket
         {"type": "stage", "objects": [
-            TITLE(12, [("Token bucket ", "amber"), ("(Stripe)", "white")], 42),
-            {"kind": "panel", "id": "bk", "x": 90, "y": 520, "w": 900, "h": 230, "title": "Rate limiter: one bucket per user", "icon": "database", "color": "amber", "t": wi(12, "bucket")},
-            {"kind": "meter", "id": "tok", "x": 130, "y": 650, "w": 820, "h": 34, "value": 0.7, "segs": 20, "label": "Tokens in the bucket", "color": "amber", "t": wi(12, "bucket")},
-            {"kind": "chip", "id": "e12", "x": 540, "y": 840, "text": "Empty bucket: the request is rejected", "color": "pink", "t": wi(12, "empty")}],
-         "clear": ["t10", "r10", "ra", "r11a", "r11b", "steps", "dl"],
-         "events": [{"id": "tok", "t": wi(12, "removes"), "dur": 0.8, "set": {"value": 0.45}},
-                    {"id": "tok", "t": wi(12, "slowly"), "dur": 1.2, "set": {"value": 0.6}},
-                    {"id": "tok", "t": wi(12, "empty"), "dur": 0.8, "set": {"value": 0.0, "color": "pink"}}]},
-        # 13 catch: other limiter types
+            TITLE(12, [("Token bucket ", "amber"), ("(Stripe)", "white")]),
+            {"kind": "grid", "id": "tokens", "in": "limiter", "t": -0.2, "x": 330, "y": DY + 130, "w": 420, "h": 80, "cols": 10, "rows": 1, "n": 7, "color": "amber", "label": "Tokens: one bucket per user"},
+            pkt("pt1", wi(12, "request"), "mint", "GET", "server"),
+            pkt("pt2", wi(12, "rejects"), "pink", "GET", "limiter", out=3.0)],
+         "clear": ["t11", "r11", "redis", "steps"],
+         "events": [{"id": "limiter", "t": 0.0, "dur": 0.0, "set": {"label": "Token bucket", "value": "", "value_color": "amber"}},
+                    {"id": "tokens", "t": wi(12, "removes"), "dur": 0.4, "set": {"n": 6}},
+                    {"id": "tokens", "t": wi(12, "drip"), "dur": 1.0, "set": {"n": 8}},
+                    {"id": "tokens", "t": wi(12, "empty"), "dur": 0.8, "set": {"n": 0, "color": "pink"}},
+                    {"id": "limiter", "t": wi(12, "rejects"), "dur": 0.0, "set": {"value": "0 tokens", "value_color": "pink"}}]},
+        # 13 the catch: Stripe runs more than request counting
         {"type": "stage", "objects": [
-            TITLE(13, [("Stripe: ", "white"), ("more than request counts", "pink")], 40),
-            {"kind": "panel", "id": "s1", "x": 90, "y": 520, "w": 900, "h": 130, "title": "Request rate limiter", "color": "amber", "t": wi(13, "counting"), "icon": "gear"},
-            {"kind": "text", "id": "s1t", "x": 130, "y": 585, "text": "Restricts each user to N requests per second", "size": 26, "color": "gray", "t": wi(13, "counting"), "maxw": 820},
-            {"kind": "panel", "id": "s2", "x": 90, "y": 680, "w": 900, "h": 130, "title": "Concurrent requests limiter", "color": "cyan", "t": wi(13, "concurrent"), "icon": "gear"},
-            {"kind": "text", "id": "s2t", "x": 130, "y": 745, "text": "Example: 20 API requests in progress at the same time", "size": 26, "color": "gray", "t": wi(13, "example"), "maxw": 820},
-            {"kind": "panel", "id": "s3", "x": 90, "y": 840, "w": 900, "h": 130, "title": "Load shedders for API requests", "color": "pink", "t": wi(13, "load"), "icon": "gear"},
-            {"kind": "text", "id": "s3t", "x": 130, "y": 905, "text": "Decide on the whole state of the system", "size": 26, "color": "gray", "t": wi(13, "whole"), "maxw": 820}],
-         "clear": ["t12", "bk", "tok", "e12"]},
-        {"type": "cta", "big": "Rate limiter: script, formula, header", "sub": "Redis Lua script. Cloudflare formula. Retry-After header.", "size": 70, "line": "for one tech topic a day.", "follow_first": True, "follow_at": 4.9, "sub_at": 1.8},
+            TITLE(13, [("Stripe: ", "white"), ("more than counting", "pink")]),
+            {"kind": "panel", "id": "c1", "t": wi(13, "counting"), "x": 40, "y": 985, "w": 1000, "h": 110, "label": "Request rate limiter", "icon": "gear", "color": "amber", "value": "N requests/s per user", "compact": True},
+            {"kind": "panel", "id": "c2", "t": wi(13, "concurrent"), "x": 40, "y": 1120, "w": 1000, "h": 110, "label": "Concurrent requests limiter", "icon": "gear", "color": "cyan", "value": "20 in progress", "compact": True},
+            {"kind": "panel", "id": "c3", "t": wi(13, "load"), "x": 40, "y": 1255, "w": 1000, "h": 110, "label": "Load shedder", "icon": "shield", "color": "pink", "value": "whole system", "compact": True}],
+         "clear": ["t12", "tokens", "pt1", "pt2"], "focus": ["c1", "c2", "c3"],
+         "events": [{"id": "c2", "t": wi(13, "20"), "dur": 0.0, "set": {"hl": True}}, {"id": "c2", "t": wi(13, "load"), "dur": 0.0, "set": {"hl": False}}, {"id": "c3", "t": wi(13, "whole"), "dur": 0.0, "set": {"hl": True}}]},
+        # 14 recap and follow
+        {"type": "stage", "objects": [
+            {"kind": "dots", "id": "recap", "t": -0.2, "x": 540, "y": 640, "n": 3, "active": -1, "spacing": 300, "labels": ["Redis script", "Formula", "HTTP header"],
+             "colors": ["cyan", "pink", "mint"], "caption": [("Inside your ", "white"), ("rate limiter", "amber")]},
+            {"kind": "endcard", "id": "end", "t": wi(14, "follow"), "y": 1020, "text": "@techinabite"},
+            {"kind": "title", "id": "endl", "t": wi(14, "follow"), "x": 540, "y": 1180, "parts": [("Follow for one tech topic a day.", "white")], "size": 36, "underline": False}],
+         "events": [{"id": "recap", "t": wi(14, "script"), "dur": 0.0, "set": {"active": 0}}, {"id": "recap", "t": wi(14, "formula"), "dur": 0.0, "set": {"active": 1}}, {"id": "recap", "t": wi(14, "header"), "dur": 0.0, "set": {"active": 2}}],
+         "clear": True},
     ],
 }

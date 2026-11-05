@@ -63,14 +63,18 @@
  ],
  "length_reason": "About 110 s on purpose: a technical deep dive (counter, atomic Redis script, window edge, window formula, 429 and Retry-After, token bucket, other limiter types) with a real command, formula or header in every part.",
  "illustrative_numbers": [
+  "0",
   "1",
-  "2",
-  "9",
   "10",
+  "11",
+  "123",
+  "2",
+  "20",
+  "3",
+  "3600",
   "7",
   "8",
-  "123",
-  "3600"
+  "9"
  ],
  "claims": [
   {
@@ -192,6 +196,11 @@
    "say": "The limit check belongs inside the same atomic script as INCR and EXPIRE (race condition otherwise).",
    "source": "https://redis.io/tutorials/howtos/ratelimiting/",
    "quote": "Redis executes Lua scripts atomically on the server. No other command runs between the script's reads and writes."
+  },
+  {
+   "say": "The 429 example response is the one in RFC 6585.",
+   "source": "https://datatracker.ietf.org/doc/html/rfc6585",
+   "quote": "RFC 6585 Additional HTTP Status Codes"
   }
  ]
 }

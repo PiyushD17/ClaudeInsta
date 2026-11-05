@@ -293,14 +293,16 @@ def text_checks(spec, lines, bounds, facts, legacy):
     if not terms_ok:
         add("FAIL", "TOPIC_TERMS_MISSING", 'The facts file needs "topic_terms": ["API", "token bucket", ...]: words that tie a frame to the topic. Every scene must show at least one.')
     else:
+        vis = stage_visible(spec, lines, bounds)
         for i, items in enumerate(onscreen):
+            if vis and spec["scenes"][i].get("type") == "stage": items = vis[i]
             shown = " ".join(t for k, t in items if k != "kicker").lower()
             if not any(t in shown for t in terms_ok):
                 add("FAIL", "FRAME_STANDALONE", f"Scene {i + 1} shows nothing that names the topic (needs one of {terms_ok}). A viewer who sees only this frame must know what the video is about.")
     # short labels: stranger test
     for i, items in enumerate(onscreen):
         for k, t in items:
-            if k in ("big1", "big2", "kicker", "big"):
+            if k in ("big1", "big2", "kicker", "big", "object", "code"):
                 continue
             nw = len(t.split())
             short = nw <= 2 or (nw == 3 and re.match(r"(a|an|the|one|some)\b", t, re.I))
@@ -337,6 +339,34 @@ def mascot_overlap_checks(path):
                     break
         finally:
             reel.SPEC["mascot"] = saved
+
+def stage_visible(spec, lines, bounds):
+    """For stage scenes: the strings actually visible mid-scene (persisting objects included)."""
+    if not any(sc.get("type") == "stage" for sc in spec["scenes"]):
+        return None
+    sys.path.insert(0, HERE)
+    import stage
+    starts = _starts(spec, lines)
+    return [stage.visible_strings(spec, starts, i, bounds) if sc.get("type") == "stage" else None for i, sc in enumerate(spec["scenes"])]
+
+def _starts(spec, lines):
+    if spec.get("pace_wps"):
+        t, out = 0.2, []
+        for text in lines:
+            out.append(round(t, 2)); t += len(text.split()) / spec["pace_wps"] + spec.get("gap", 0.4)
+        return out
+    return [l[1] for l in spec["lines"]]
+
+def stage_layout_checks(path):
+    """Layout of stage scenes: text inside its box, nesting, no overlaps, no empty boxes, content zone, mascot, short labels, visible change."""
+    sys.path.insert(0, HERE)
+    import reel, stage
+    reel.load_spec(path)
+    if not any(sc.get("type") == "stage" for sc in reel.SPEC["scenes"]):
+        return
+    mb = reel.mascot_boxes()[0] if reel.SPEC.get("mascot") and reel.mascot_boxes() else None
+    for level, code, msg in stage.layout_check(reel.SPEC, [l[1] for l in reel.SPEC["lines"]], reel.DUR, mb, draw_cls=reel.SoftDraw):
+        add(level, code, msg)
 
 def side_by_side(spec, lines, bounds, onscreen):
     out = ["", "## Script next to on-screen text (reviewer reads this)"]
@@ -426,6 +456,7 @@ def main():
         onscreen = text_checks(spec, lines, bounds, facts, a.legacy) or [scene_strings(sc) for sc in spec["scenes"]]
         extra = side_by_side(spec, lines, bounds, onscreen)
         mascot_overlap_checks(a.spec)
+        stage_layout_checks(a.spec)
     if a.video:
         boxes = []
         if a.spec:
