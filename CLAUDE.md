@@ -27,6 +27,11 @@ Score it with `python3 rehookscore.py`: PASS is overall 60+ and every component 
 Every video's hook must score STRONG (70+) on `skills/ig-reel/hookscore.py` before rendering. If the first batch of hooks scores lower, write new hooks
 and score again (up to 5 rounds) instead of rendering a weak opening. See RUN_DAILY.md section 3. Engagement matters as much as accuracy.
 
+## Reach signals (what Instagram rewards)
+Skipping in the first 3 seconds hurts; finishing, replaying and sending help. So every video has: a hook that names its subject and scores 70+, a rehook, one line worth
+sending or saving, a last line that makes the hook land differently on a second watch, and a target length of 35 to 45 seconds. See RUN_DAILY.md section 3 (reach gates)
+and section 8 (results log). Nobody can guarantee reach; the results log is how we learn what works.
+
 ## Mascot
 The page mascot is `assets/mascot.png` (owner-approved; a smiling chat-bubble chip with a bite taken out). Every video shows it via the spec's `"mascot"` key (see RUN_DAILY.md section 4). It never moves its mouth, never covers text, and stays inside the safe zone.
 
@@ -47,12 +52,20 @@ Page name: Tech in a Bite (handle @techinabite). Header tag on every video is "@
 developers, engineers and managers, plus cloud, databases, solution architecture and system design. Profile picture: `python avatar.py "TECH IN A" "BITE" out/avatar.png ""`.
 
 ## Writing rule for ALL on-screen text and scripts (set by the user, non-negotiable)
-Everything written in a video must be clean, complete and understandable on its own. No half measures:
-- Use complete sentences or clear, self-explaining labels. Never clipped fragments ("One row. Ten million.").
+Everything written in a video must be clean, complete and understandable on its own. "Complete" means the CONTEXT is complete: a stranger must always know what is being talked about. It does NOT mean every line must be a grammatical sentence. No half measures:
+- Short, punchy, even fragmentary lines are allowed (and good for hooks) when the context is complete, for example "Your API request costs 1 token. No tokens, no entry." or "1 row in 10 million records". The subject must be named in the line itself or in the line directly before it.
+- Never use clipped fragments that name no subject or unit ("One row. Ten million." says nothing: one row of what?). Fix those by adding the missing context, not by padding into a long sentence.
 - Spell numbers and units so they make sense alone ("1 row in 10 million records", not "One row. Ten million.").
+- EVERY FRAME STANDS ALONE (owner rule): a viewer who sees only one frame must know what the video is about and understand what the frame says. Each scene must show words that name the topic (the facts file lists `topic_terms`; check_spec.py fails a scene with none) and no label may be a vague headline by itself ("Slow down" says nothing: slow down what?). Write "Too many requests" with a label saying what happens to an API, not a bare slogan.
 - Titles must fit on screen (they wrap to two lines automatically); shorten wording instead of cutting words off.
-- Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?", rewrite it.
+- Before rendering, read every on-screen string aloud as a stranger would: if a viewer would ask "what does that mean?" or "what are we talking about?", add the missing context. Do not rewrite a punchy line into a long sentence if the context is already clear.
 - Scripts tell a story (hook question, problem, fix, catch, takeaway), not a list of facts.
+
+## Animations must be correct
+Every moving scene is reviewed as a filmstrip (`animsheet.py`, RUN_DAILY.md section 4a), not only as one still frame: the right object must react, counters must equal what is drawn, and the order on screen must equal the order of the words. New animated scenes get a regression test in `tests/`.
+
+## Zero warnings
+A video ships only with `check_spec.py` reporting 0 FAIL and 0 WARN (INFO length notes covered by a `length_reason` are fine). A warning means a frame, line or number is not good enough yet: fix it instead of accepting it.
 
 ## Accuracy rules (set by the owner after the Day 05 mistakes)
 - Use the exact technical terms the sources use. Never replace a term with a look-alike ("3 rules" for algorithms is wrong).

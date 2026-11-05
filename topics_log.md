@@ -14,3 +14,4 @@ AI: Claude Cowork, Microsoft Copilot Cowork, Perplexity, Cursor, Notion AI, Canv
 Databases: what an index does, Postgres vs MySQL, caching strategies, SQL vs NoSQL
 System design: load balancers, CAP theorem, message queues, rate limiting, CDN
 Cloud: serverless vs containers, what Kubernetes does, regions and availability zones
+| 10 | 2026-11-05 | What RAG (retrieval-augmented generation) does | "Stop retraining AI models on your documents. Try RAG first." (hook score 87.0) | AWS "What is RAG?", Lewis et al. RAG paper (arXiv 2005.11401) |

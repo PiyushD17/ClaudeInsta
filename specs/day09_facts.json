@@ -1,0 +1,144 @@
+{
+ "terms": [
+  {
+   "use": "token bucket algorithm",
+   "never_say": [
+    "token bucket rule",
+    "token bucket rules",
+    "token bucket trick"
+   ]
+  },
+  {
+   "use": "rate limiting",
+   "never_say": [
+    "rate blocking"
+   ]
+  },
+  {
+   "use": "429 Too Many Requests",
+   "never_say": []
+  },
+  {
+   "use": "Retry-After header",
+   "never_say": []
+  }
+ ],
+ "counts": {},
+ "rehook": {
+  "line": 5,
+  "payoff_line": 6
+ },
+ "illustrative_numbers": [
+  "3",
+  "4",
+  "0"
+ ],
+ "claims": [
+  {
+   "say": "Stripe uses the token bucket algorithm to do rate limiting.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "We use the token bucket algorithm to do rate limiting."
+  },
+  {
+   "say": "Every Stripe user has a bucket, and each request removes one token.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "In our case, every Stripe user has a bucket, and every time they make a request we remove a token from that bucket."
+  },
+  {
+   "say": "Each request removes one token from the bucket. (scene label)",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "In our case, every Stripe user has a bucket, and every time they make a request we remove a token from that bucket."
+  },
+  {
+   "say": "The server asks a client to slow down when it sends too many requests in a given amount of time. (scene label)",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
+  },
+  {
+   "say": "HTTP status code 429 (scene note).",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code"
+  },
+  {
+   "say": "A token counts for a request.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "API Gateway throttles requests to your API using the token bucket algorithm, where a token counts for a request."
+  },
+  {
+   "say": "0 tokens left does not mean you are blocked for good.",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "slowly drip more tokens into the bucket"
+  },
+  {
+   "say": "Your API request costs 1 token (in a token bucket system, a token counts for a request).",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "API Gateway throttles requests to your API using the token bucket algorithm, where a token counts for a request."
+  },
+  {
+   "say": "No tokens, no entry: with no tokens in the bucket the request is rejected ('entry' is figurative; the source word is reject).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request."
+  },
+  {
+   "say": "Behind it is rate limiting: a client sends too many requests, so the server asks it to slow down.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "The HTTP 429 Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time. This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
+  },
+  {
+   "say": "The first 3 requests take a token each, and the 4th is rejected (worked example).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "every time they make a request we remove a token from that bucket. ... If the bucket is empty, reject the request."
+  },
+  {
+   "say": "Tokens are added back at a steady rate, so requests can go through again once the bucket refills.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+   "quote": "You can specify a throttling rate, which is the rate, in requests per second, that tokens are added to the token bucket. ... steady-state request rate and burst limits"
+  },
+  {
+   "say": "Requests can go through again once the bucket refills (tokens dripped back in).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "slowly drip more tokens into the bucket"
+  },
+  {
+   "say": "If a request gets 429 Too Many Requests, look for a Retry-After header. It can say how long to wait.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After",
+   "quote": "In a 429 Too Many Requests response, this indicates how long to wait before making a new request."
+  },
+  {
+   "say": "If your request gets this response (scene title); 429 Too Many Requests; Look for a Retry-After header: it can say how long to wait. (scene label)",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After",
+   "quote": "In a 429 Too Many Requests response, this indicates how long to wait before making a new request."
+  },
+  {
+   "say": "In a token bucket, no tokens means no entry only until it refills (no entry = the request is rejected; refill = tokens added back).",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request. ... slowly drip more tokens into the bucket"
+  },
+  {
+   "say": "No tokens, no entry, but only until the bucket refills. (scene text)",
+   "source": "https://stripe.com/blog/rate-limiters",
+   "quote": "If the bucket is empty, reject the request. ... slowly drip more tokens into the bucket"
+  },
+  {
+   "say": "Too many requests (scene 2 big value): the API server asks a client to slow down when it sends too many requests.",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429",
+   "quote": "This mechanism of asking the client to slow down the rate of requests is commonly called \"rate limiting\"."
+  }
+ ],
+ "editorial_note": "Opening hook 'Your API request costs 1 token. No tokens, no entry.' was chosen by the owner. It is one step more general than the sources (true of token bucket APIs); scene 3 scopes it to Stripe's token bucket and 'entry' is figurative for the source word 'reject'.",
+ "share": {
+  "line": 7,
+  "who": "a developer whose script keeps getting a 429 response",
+  "why": "it tells them what to do next: look for a Retry-After header that says how long to wait"
+ },
+ "replay": {
+  "echo": "entry",
+  "twist": "On a second watch 'No tokens, no entry' reads as 'no entry yet': the last line says it only lasts until the bucket refills."
+ },
+ "length_reason": "About 143 words (49 s): the worked example (3 tokens, 4 requests) needs its own beat so the refill payoff lands.",
+ "topic_terms": [
+  "API",
+  "token bucket",
+  "rate limit"
+ ]
+}

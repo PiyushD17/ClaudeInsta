@@ -37,7 +37,7 @@ A video is only worth delivering if people stay past the first three seconds. Th
 
 **Hook gate (do not skip, do not shortcut):**
 1. Read `skills/ig-reel/hooks.json` (26 formulas). Write at least 6 candidate opening lines, each from a DIFFERENT formula.
-   Each must be 5 to 12 words (spoken in about 3 seconds), contain something concrete (a number, a named thing or a clear stake from
+   Each must be 5 to 12 words (spoken in about 3 seconds), name its subject so a stranger knows what it is about (open with the thing, for example "Your API request ...", before the punch), contain something concrete (a number, a named thing or a clear stake from
    the verified sources), put the payload at the front, speak straight to the viewer, and be TRUE. No fabricated numbers, no fake
    "nobody knows" claims you cannot defend, no promises the video does not deliver.
 2. Put the candidates in `out/dayNN_hooks.txt` (one per line) and run `python3 skills/ig-reel/hookscore.py out/dayNN_hooks.txt`.
@@ -66,6 +66,17 @@ Structure: hook, delay #1 (problem and setup, answer withheld), REHOOK, delay #2
 5. Give the rehook scene a visible change on screen (a new scene type, a highlighted word or a flip) so viewers notice the second hook.
 6. Record it in the facts file: `"rehook": {"line": N, "payoff_line": M}` (1-based script lines). `check_spec.py` verifies position, payoff order and re-scores the line.
 
+**Reach gates (mandatory; they target what Instagram rewards: finishing, replaying, sending). The chart the owner uses: skip in 3 s = red, watch then leave = blue,
+finish / replay / send = green.**
+1. *Send-or-save line.* Exactly one script line (not the hook, not the closing line) must be worth sending to a specific person or saving: a rule of thumb, a
+   "this is the bug your team has" moment, a number to remember. Pick who would send it ("a dev whose API gets rate limited") and why. Record
+   `"share": {"line": N, "who": "...", "why": "..."}` in the facts file. It must be true and sourced like everything else. The closing line stays exactly "Follow for one tech topic a day."
+2. *Replay design.* The last line before the closing call to action must reuse a word from the hook AND change how the hook reads on a second watch (the answer to the
+   hook, turned into the lesson). Record `"replay": {"echo": "<word>", "twist": "..."}`. check_spec.py fails if the echo word is missing from the first and last lines.
+3. *Length target.* Aim for 35 to 45 seconds (about 105 to 135 words). check_spec.py warns above 150 words or 50 s. Over 50 s needs a one-line reason in the summary
+   (for example "two sources needed to make the example clear"). Never pad to reach a length either.
+4. The reviewer (section 4b) also checks: is there a clear send/save line, does the ending recontextualise the hook, is anything cuttable.
+
 **Engagement gate (also mandatory):**
 - Run `python3 skills/ig-reel/beats.py script.txt --target <seconds> --wpm 190` and fix every flag it raises (hook too long, a beat that drags,
   a stretch with nothing concrete, no loop). Re-run until clean.
@@ -75,10 +86,12 @@ Structure: hook, delay #1 (problem and setup, answer withheld), REHOOK, delay #2
 - Do not pad. Cut any sentence that does not move the explanation forward.
 
 **Then write the script** on the winning hook: plain spoken language, contractions, short lines, run it through ig-human.
-- Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule is stricter: every on-screen
-  string must be a clean, complete, self-explaining sentence or label. Never clipped fragments.
+- Overrides: no on-camera advice, length 30-60 seconds, and the "six words per card" limit does NOT apply. Our rule: every on-screen
+  string and spoken line must have complete CONTEXT, so a stranger knows what is being talked about (see CLAUDE.md writing rule). Punchy, fragmentary
+  lines are allowed when the subject is named in the line or the line right before it (for example "Your API request costs 1 token. No tokens, no entry.").
+  Never use fragments that name no subject or unit ("One row. Ten million.").
 - Shape: hook, the problem (delay #1), rehook, the build-up (delay #2), the answer, one takeaway, then exactly: "Follow for one tech topic a day."
-- Length: 100 to 190 words (about 30 to 60 seconds at 3.2 words/second) and at most about 950 characters, because the voiceover
+- Length: aim for 105 to 135 words (35 to 45 seconds); hard limits 100 to 190 words (30 to 60 s at 3.2 words/second) and at most about 950 characters, because the voiceover
   uses limited free credits. No greeting, no "in this video".
 - Explain one idea only. Use a concrete example or analogy. Say what it costs or where it breaks, not only why it is great.
 
@@ -112,24 +125,39 @@ different example numbers in different scenes, script/scene mismatch). WARN line
    `check_spec.py` fails on any overlap, so fix those by moving the mascot first and only hide it when no free spot exists.
 5. Safe zone: keep everything between y=230 and y=1440 on the 1080x1920 frame (the template already does).
 6. Render: `python3 build.py specs/dayNN_<slug>.py` creates `out/dayNN_<slug>.mp4` (with music), `_silent.mp4` and `_bgm.wav`.
-7. Check: `ffprobe` duration must be 30 to 60 seconds. Render preview frames of every scene (for example with
+7. Frame test: look at the contact sheet one frame at a time. Each frame alone must (a) name the topic in its own words (title or label, not only the hook) and (b) be understandable with no other frame and no audio. Bare slogans ("Slow down") fail. Add `"topic_terms": [...]` to the facts file; check_spec.py fails any scene that shows none of them.
+8a. Check: `ffprobe` duration must be 30 to 60 seconds. Render preview frames of every scene (for example with
    `reel.load_spec` and `reel.frame(t)` in a short script) and look at them. Fix any overflow, overlap or cut-off text.
    Read every on-screen string aloud as a stranger would; rewrite anything that raises "what does that mean?".
 8. Check the rendered file itself, not only the spec:
    `python3 check_spec.py specs/dayNN_slug.py --facts specs/dayNN_facts.json --video out/dayNN_slug_silent.mp4 --sheet out/dayNN_sheet.png --report out/dayNN_check.md`
    It re-checks the script and every on-screen string, then inspects the video: duration, content outside the Instagram safe zone, and dead or blank
-   screens (FAIL at 0.5 s or more, WARN at 0.2 s or more). Fix and re-render until there is no FAIL.
+   screens (FAIL at 0.5 s or more, WARN at 0.2 s or more). Fix and re-render until there is no FAIL and no WARN (zero warnings is the target; INFO length notes covered by `length_reason` are fine).
+
+## 4a. Animation review (mandatory; a still frame cannot show an animation bug)
+The contact sheet shows one frame per scene. It cannot show "request 1 hits token 1 but token 3 disappears". So every scene is also reviewed as a filmstrip.
+1. Make the filmstrips: `python3 animsheet.py specs/dayNN_slug.py out/dayNN_anim` (one PNG per scene, a frame every 0.8 s, each labelled with its time). Look at EVERY strip.
+2. Write `out/dayNN_anim_review.md`: for each scene a short table of time, what changed on screen, what the voice says at that moment, and OK or PROBLEM.
+3. Check these rules in every moving scene and fix every violation (fix the scene code, not the wording):
+   - Every moving object goes where the script says it goes, and the thing it hits is the thing that changes (request 1 consumes token 1, not token 3).
+   - Counters and labels always equal what is drawn (a counter that says 2 shows exactly 2 objects, in every frame, including the in-between frames).
+   - The order of events on screen equals the order of the words in the script, and each event happens while its sentence is spoken, not before or after.
+   - Nothing appears, vanishes or jumps without a cause; nothing is drawn over text; nothing leaves the safe zone mid-animation.
+   - The end state of each scene is exactly the claim of its sentence, and the worked example uses the same numbers in every scene.
+4. Any NEW or changed animated scene function gets a small regression test in `tests/` (see `tests/test_bucket_animation.py`: it renders frames and checks which objects are present at given times). Run all tests in `tests/` before delivering.
+5. Reviewer (section 4b) also receives the filmstrips and `out/dayNN_anim_review.md` and must narrate each strip frame by frame against the script and reply PASS or list discrepancies. A reviewer that only looks at the contact sheet has not reviewed the animation.
 
 ## 4b. Reviewer pass (mandatory, independent)
 The person who wrote the video must not be the only one to check it. Start a fresh reviewer with the Agent tool (general-purpose). Give it ONLY:
-the facts file, `out/dayNN_check.md` (which lists the script next to every on-screen string, scene by scene), and `out/dayNN_sheet.png` (frames of every scene).
+the facts file, `out/dayNN_check.md` (which lists the script next to every on-screen string, scene by scene), `out/dayNN_sheet.png` (frames of every scene), the filmstrips `out/dayNN_anim_sNN.png` and `out/dayNN_anim_review.md` (section 4a).
 Do not give it your drafting notes. Ask it to:
 1. For every spoken sentence, find the claim and source quote that supports it. List any sentence with no support.
 2. For every on-screen string, confirm it is true, uses the source term, and says the same thing as the spoken line of its scene.
 3. Walk through every worked example step by step (for instance "visitor 4 with 3 servers goes to server 1") and write the result. Confirm the pictures
    in the contact sheet show the same example, and that counts match ("3 servers" shows exactly three).
 4. Check technical accuracy against general knowledge and the quotes: is anything oversimplified until it is wrong, or presented as universal when it is only common?
-5. Reply PASS, or a numbered list of problems with the exact fix for each.
+5. Reach check: name the send-or-save line and who would send it, say how the last line changes the hook on a second watch, and name any sentence that could be cut without losing the story.
+6. Reply PASS, or a numbered list of problems with the exact fix for each.
 Apply every fix, re-run `check_spec.py`, re-render, and send it back to the reviewer. Up to 3 rounds. If the Agent tool is not available, do the same review yourself as a
 separate written pass (a table of sentence, quote, verdict) and say in the summary that the review was not independent.
 **Stop rule:** if problems remain after 3 rounds, or a fact cannot be supported by a quote, do NOT deliver a video. Send one message that lists the open problems and
@@ -150,7 +178,8 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked); `out/dayNN_rehooks.txt` likewise for the rehook
 - `out/dayNN_sources.md`: each source as a link with what it supports, plus the claim table (what the video says, source link, quote)
 - `out/dayNN_check.md`: the checker report and the reviewer's verdict
-Then send one SendUserMessage: topic, length in seconds, the final hook with its hookscore (and the runner-up scores), the rehook with its score, how many hook and rehook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
+- `out/dayNN_anim_review.md`: the filmstrip review table (and the filmstrip PNGs only if the owner asks)
+Then send one SendUserMessage: topic, length in seconds (with a reason if over 50 s), the send-or-save line and who it is for, the replay twist, the final hook with its hookscore (and the runner-up scores), the rehook with its score, how many hook and rehook rounds it took, the script, the caption, the sources, the checker result (0 FAIL) and the reviewer verdict, and any doubts or unverified points.
 The summary must be readable on its own.
 
 ## 7. Update the log
@@ -158,14 +187,22 @@ Add a row to the topics log document (Day, date, topic, pillar, hook, sources, s
 Also append the topic to the "Covered so far" line in memory (/areas/social-media-page.md) if memory tools are available.
 If neither works, say so in the summary and list the row to add by hand.
 
+## 8. Results log (the owner fills it, the run reads it)
+The topics log document has a "Results" table (Day, views, average watch time, finished %, replays, sends, saves, notes). The owner pastes numbers from Instagram Insights
+a few days after posting. At the start of each run, read it (if any rows are filled) and say in the summary which hook formula, rehook pattern, length and send-line type
+did best and worst so far (only with at least 3 rows; otherwise say there is not enough data). Bias the next hook formulas toward the winners but never skip the gates. Never invent numbers.
+The repo copy is `results_log.md`.
+
 ## Quality gates (do not deliver if any fails)
 - Hook: final spoken hook and on-screen hook score STRONG (70+) on hookscore.py, or the summary starts with "HOOK BELOW TARGET" after 5 rounds.
 - Rehook: one rehook in the middle (25-65% of the script) that passes `rehookscore.py` (60+, every part 40+) or the summary starts with "REHOOK BELOW TARGET"; it is answered later and the answer arrives by about 80%.
 - Engagement: beats.py clean; loop echo present; something changes on screen every 3-4 seconds.
 - Every fact traced to an opened source, with a quote in the claim table. Key terms exactly as the sources write them; no look-alike words.
-- `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
+- `check_spec.py` (with the facts file and the rendered video) reports 0 FAIL and 0 WARN, every frame stands alone and names the topic, and the independent reviewer replied PASS. Otherwise nothing is delivered (see the stop rule).
+- Animation review done (section 4a): filmstrips viewed, `out/dayNN_anim_review.md` written, no PROBLEM left, tests in `tests/` pass, reviewer narrated the filmstrips and replied PASS.
 - Mascot present and never covering text or diagrams (`check_spec.py` reports no MASCOT_ZONE or MASCOT_OVERLAP FAIL).
 - One consistent worked example across all scenes; counts in text match what the pictures show.
+- Reach: one send-or-save line and a replay twist recorded in the facts file; target 35-45 s (over 50 s needs a reason).
 - Duration 30-60 s; script 100-190 words; ends with the closing line.
 - All on-screen text complete and fitting on screen; nothing in the top 230 px or bottom 480 px of the frame.
 - Topic not already in the log. Brand text says "Tech in a Bite", never a length like "in 25 seconds".

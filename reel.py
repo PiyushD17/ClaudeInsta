@@ -254,12 +254,21 @@ def sc_approval(d, u, a, sc):
     d.text((W / 2, 1090), "Illustration", font=REG(26), fill=A(MUTED, a), anchor="mm")
 
 def sc_cta(d, u, a, sc):
-    v = ease(fade(u, 0.2, 0.8))
-    d.text((W / 2, 600), sc["big"], font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
-    d.text((W / 2, 720), sc["sub"], font=MED(44), fill=A(MUTED, a * v), anchor="mm")
-    c = ease(fade(u, 3.4, 4.0)) * a
-    d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70), fill=A(TEXT, c), anchor="mm")
-    d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
+    v = ease(fade(u, -0.3, 0.1))
+    vs = ease(fade(u, sc["sub_at"], sc["sub_at"] + 0.4)) if "sub_at" in sc else v   # optional: second line appears later, so the scene keeps changing
+    bl = wrap(d, sc["big"], BOLD(sc.get("size", 120)), 900)
+    for i, ln in enumerate(bl):
+        d.text((W / 2, 600 - (len(bl) - 1) * 50 + i * 100), ln, font=BOLD(sc.get("size", 120)), fill=A(AMBER, a * v), anchor="mm")
+    for i, ln in enumerate(wrap(d, sc["sub"], MED(44), 860)):
+        d.text((W / 2, 720 + (len(bl) - 1) * 50 + i * 58), ln, font=MED(44), fill=A(MUTED, a * vs), anchor="mm")
+    fa = sc.get("follow_at", 3.4)   # seconds into the scene when the closing call to action appears (set it to when the voice says it)
+    c = ease(fade(u, fa, fa + 0.6)) * a
+    if sc.get("follow_first"):   # reads as one sentence: "Follow" / "for one tech topic a day."
+        d.text((W / 2, 930 + (1 - c) * 24), "Follow", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
+        d.text((W / 2, 1050 + (1 - c) * 24), sc.get("line", "for one tech topic a day."), font=BOLD(60), fill=A(TEXT, c), anchor="mm")
+    else:
+        d.text((W / 2, 930 + (1 - c) * 24), sc.get("line", "One work tool a day."), font=BOLD(70), fill=A(TEXT, c), anchor="mm")
+        d.text((W / 2, 1060 + (1 - c) * 24), "Follow.", font=BOLD(112), fill=A(AMBER, c), anchor="mm")
 
 
 def sc_bars(d, u, a, sc):
@@ -341,19 +350,22 @@ def sc_lookup(d, u, a, sc):
     d.rounded_rectangle([90, 450, 540, 1150], radius=30, fill=A(PANEL, a), outline=A(EDGE, a), width=3)
     d.text((130, 505), sc["list_label"], font=BOLD(28), fill=A(AMBER, a), anchor="lm")
     items, tg = sc["items"], sc["target"]
-    cur = min(tg, int(max(0, u - 0.8) / 0.55)) if u > 0.8 else -1
+    ja = sc.get("jump_at")                # jump mode: no row-by-row stepping; the target row lights up at jump_at seconds
+    t0 = ja if ja is not None else 0.8 + 0.55 * tg
+    if ja is not None: cur = tg if u > ja else -1
+    else: cur = min(tg, int(max(0, u - 0.8) / 0.55)) if u > 0.8 else -1
     for i, (term, pg) in enumerate(items):
         y = 600 + i * 100
         hot = (i == cur)
         if hot:
             d.rounded_rectangle([110, y - 38, 520, y + 38], radius=18, fill=A(AMBER, a * 0.22), outline=A(AMBER, a), width=3)
-        d.text((140, y), term, font=BOLD(40), fill=A(TEXT if hot else MUTED, a), anchor="lm")
-        d.text((500, y), str(pg), font=MED(36), fill=A(AMBER if hot else MUTED, a), anchor="rm")
-    ar = ease(fade(u, 0.8 + 0.55 * tg + 0.3, 0.8 + 0.55 * tg + 0.8)) * a
+        d.text((140, y), term, font=BOLD(sc.get("item_size", 40)), fill=A(TEXT if hot else MUTED, a), anchor="lm")
+        if str(pg): d.text((500, y), str(pg), font=MED(sc.get("pg_size", 36)), fill=A(AMBER if hot else MUTED, a), anchor="rm")
+    ar = ease(fade(u, t0 + 0.3, t0 + 0.8)) * a
     d.polygon([(560, 790), (610, 790), (610, 765), (660, 810), (610, 855), (610, 830), (560, 830)], fill=A(MINT, ar))
-    pc = ease(fade(u, 0.8 + 0.55 * tg + 0.7, 0.8 + 0.55 * tg + 1.2)) * a
+    pc = ease(fade(u, t0 + 0.7, t0 + 1.2)) * a
     d.rounded_rectangle([690, 560, 990, 1050], radius=26, fill=A(PANEL, pc), outline=A(MINT, pc), width=4)
-    d.text((840, 620), sc["page_label"], font=BOLD(40), fill=A(MINT, pc), anchor="mm")
+    d.text((840, 620), sc["page_label"], font=BOLD(sc.get("page_size", 40)), fill=A(MINT, pc), anchor="mm")
     for j in range(7):
         d.rounded_rectangle([730, 690 + j * 46, 950 - (j % 3) * 50, 702 + j * 46], radius=6, fill=A(EDGE, pc))
     d.text((W / 2, 1260), sc["note"], font=MED(40), fill=A(MUTED, a), anchor="mm")
@@ -442,14 +454,15 @@ def sc_versus(d, u, a, sc):
     """two cards side by side, each with up to 3 short complete lines"""
     title(d, a, sc["title"])
     for side, (x0, col) in enumerate(((70, MUTED), (550, MINT))):
-        k = ease(fade(u, 0.4 + 1.0 * side, 0.9 + 1.0 * side)) * a
+        ct = sc.get("t_right", 1.4) if side else sc.get("t_left", 0.4)   # when each card appears (set to when the voice says it)
+        k = ease(fade(u, ct, ct + 0.5)) * a
         card = sc["left"] if side == 0 else sc["right"]
         d.rounded_rectangle([x0, 470, x0 + 460, 1190], radius=30, fill=A(PANEL, k), outline=A(col, k), width=4)
         for i, ln in enumerate(wrap(d, card["head"], BOLD(44), 380)):
             d.text((x0 + 40, 540 + i * 56), ln, font=BOLD(44), fill=A(col, k), anchor="lm")
         y = 700
         for j, b in enumerate(card["points"]):
-            bk = ease(fade(u, 1.0 + 1.0 * side + 0.5 * j, 1.4 + 1.0 * side + 0.5 * j)) * a
+            bk = ease(fade(u, ct + 0.6 + 0.5 * j, ct + 1.0 + 0.5 * j)) * a
             for i, ln in enumerate(wrap(d, b, MED(34), 380)):
                 d.text((x0 + 40, y + i * 46), ln, font=MED(34), fill=A(TEXT, bk), anchor="lm")
             y += 46 * len(wrap(d, b, MED(34), 380)) + 36
@@ -468,7 +481,66 @@ def sc_stat(d, u, a, sc):
     if sc.get("note"):
         d.text((W / 2, 1300), sc["note"], font=REG(28), fill=A(MUTED, k), anchor="mm")
 
-SCENES = {"hook": sc_hook, "flow": sc_flow, "pills": sc_pills, "approval": sc_approval, "cta": sc_cta, "bars": sc_bars, "lane": sc_lane, "scan": sc_scan, "lookup": sc_lookup, "tree": sc_tree, "writes": sc_writes, "steps": sc_steps, "versus": sc_versus, "stat": sc_stat}
+def sc_bucket(d, u, a, sc):
+    """Token bucket. modes: 'full' (tokens shown), 'requests' (N requests arrive; each takes a token, extras are rejected),
+    'empty' (empty bucket, pulsing), 'refill' (tokens return one by one)."""
+    title(d, a, sc["title"])
+    cap, mode = sc.get("capacity", 3), sc["mode"]
+    bx0, bx1, by0, by1 = 270, 810, 600, 860
+    k = ease(fade(u, 0.1, 0.5)) * a
+    d.rounded_rectangle([bx0, by0, bx1, by1], radius=40, fill=A(PANEL, k), outline=A(AMBER, k), width=5)
+    d.text((W / 2, by0 - 40), sc.get("bucket_label", "Bucket"), font=BOLD(40), fill=A(AMBER, k), anchor="mm")
+    cy = by0 + 130
+    xs = [W / 2 + (i - (cap - 1) / 2) * 160 for i in range(cap)]
+    gap = sc.get("refill_gap", 1.0) if mode == "refill" else 1.5
+    n_req = sc.get("requests", 0)
+    landed = set()
+    if mode == "requests":
+        for r in range(n_req):
+            t0 = 0.8 + gap * r
+            p = ease(fade(u, t0, t0 + 0.7))
+            if p <= 0: continue
+            lab = "Request " + str(r + 1)
+            if r < cap:                      # flies into the bucket and takes a token
+                if p >= 1: landed.add(r); continue
+                cx, cyy = xs[r], 1120 + (cy - 1120) * p
+                d.rounded_rectangle([cx - 70, cyy - 34, cx + 70, cyy + 34], radius=14, fill=A(AMBER, a))
+                d.text((cx, cyy), lab, font=BOLD(26), fill=A((10, 14, 24), a), anchor="mm")
+            else:                            # bounces off the empty bucket and is rejected
+                bad = ease(fade(u, t0 + 0.7, t0 + 1.0))
+                cyy = 1120 + (1010 - 1120) * p
+                cx = W / 2 + (16 * math.sin(u * 40) * bad if bad < 1 else 0)
+                col = mix(AMBER, (255, 110, 100), bad)
+                d.rounded_rectangle([cx - 90, cyy - 34, cx + 90, cyy + 34], radius=14, fill=A(col, a))
+                d.text((cx, cyy), lab, font=BOLD(28), fill=A((10, 14, 24), a), anchor="mm")
+                if bad > 0:
+                    d.text((W / 2, 1090), "Rejected: the bucket is empty.", font=BOLD(46), fill=A((255, 120, 110), bad * a), anchor="mm")
+    if mode == "requests": tok_n = cap - len(landed)
+    elif mode == "empty": tok_n = 0
+    elif mode == "refill": tok_n = min(cap, int(max(0, u - 0.8) / gap) + 1) if u >= 0.8 else 0
+    else: tok_n = cap
+    pulse = 0.5 + 0.5 * math.sin(u * 6) if mode == "empty" else 1
+    for i in range(cap):
+        cx = xs[i]
+        shown = (i not in landed) if mode == "requests" else (i < tok_n)   # request r consumes the token it lands on
+        if shown:
+            tk = ease(fade(u, 0.8 + gap * i, 1.2 + gap * i)) if mode == "refill" else 1.0
+            d.ellipse([cx - 52, cy - 52, cx + 52, cy + 52], fill=A(MINT, a * k * tk), outline=A(TEXT, a * k * tk), width=3)
+            d.text((cx, cy), "1", font=BOLD(46), fill=A((10, 14, 24), a * k * tk), anchor="mm")
+        else:
+            d.ellipse([cx - 52, cy - 52, cx + 52, cy + 52], outline=A(MUTED, a * k * (0.35 + 0.65 * pulse)), width=3)
+    if mode != "requests":
+        d.text((W / 2, 960), f"Tokens left: {tok_n}", font=BOLD(62), fill=A(MINT if tok_n else (255, 120, 110), a), anchor="mm")
+    else:
+        d.text((W / 2, 925), f"Tokens left: {tok_n}", font=BOLD(54), fill=A(MINT if tok_n else (255, 120, 110), a), anchor="mm")
+    if sc.get("sub"):
+        s = ease(fade(u, sc.get("sub_at", 1.0), sc.get("sub_at", 1.0) + 0.5)) * a
+        for i, ln in enumerate(wrap(d, sc["sub"], MED(40), 860)):
+            d.text((W / 2, 1090 + i * 54), ln, font=MED(40), fill=A(TEXT, s), anchor="mm")
+    if sc.get("note"):
+        d.text((W / 2, 1400), sc["note"], font=REG(28), fill=A(MUTED, a), anchor="mm")
+
+SCENES = {"bucket": sc_bucket, "hook": sc_hook, "flow": sc_flow, "pills": sc_pills, "approval": sc_approval, "cta": sc_cta, "bars": sc_bars, "lane": sc_lane, "scan": sc_scan, "lookup": sc_lookup, "tree": sc_tree, "writes": sc_writes, "steps": sc_steps, "versus": sc_versus, "stat": sc_stat}
 
 def scene_bounds():
     starts = [max(0.0, l[1] - 0.3) if i else 0.0 for i, l in enumerate(SPEC["lines"])]

@@ -9,13 +9,17 @@ Usage:
 
 It checks the SCRIPT and every ON-SCREEN string together, and (with --video) the rendered file itself.
 Exit code 0 = no FAIL. Exit code 1 = at least one FAIL: do not deliver until every FAIL is fixed.
-WARN lines are judgement calls that the reviewer pass must resolve.
+Target is 0 FAIL and 0 WARN. A WARN means a frame, line or number is not good enough yet: fix it. INFO lines are only length notes covered by "length_reason".
 
 Facts file (written by the daily run from the sources it actually opened), JSON:
 {
   "terms":   [{"use": "load balancing algorithm", "never_say": ["rule", "rules"]}],
   "counts":  {"algorithm": 2},                    # sizes of sets that a source states ("two common algorithms")
   "rehook":  {"line": 4, "payoff_line": 6},      # script lines (1-based): the mid-video second hook and the line that answers it
+  "share":   {"line": 5, "who": "a dev whose API gets rate limited", "why": "a rule of thumb or moment worth sending or saving"},
+  "replay":  {"echo": "bucket", "twist": "how the last line makes the opening hook land differently on a second watch"},
+  "topic_terms": ["API", "token bucket"],       # every scene must show at least one, so each frame ties back to the topic on its own
+  "length_reason": "why the video is over 50 s",   # optional; turns the length WARNs into INFO
   "illustrative_numbers": ["4"],                  # numbers invented for a worked example (must be labelled as an example)
   "claims":  [{"say": "...", "source": "https://...", "quote": "text copied from the opened page"}]
 }
@@ -35,6 +39,7 @@ STOP_BEFORE_NUM = {"of", "in", "to", "at", "by", "for", "about", "than", "over",
 CTA = "Follow for one tech topic a day."
 
 findings = []  # (level, code, message)
+LENGTH_REASON = False
 
 def add(level, code, msg):
     findings.append((level, code, msg))
@@ -68,11 +73,13 @@ def load_spec(path):
         bounds.append((s0, s1))
     return spec, lines, bounds, dur
 
+NON_DISPLAY = {"type", "mode", "mascot", "follow_first"}   # spec keys that are settings, never shown on screen
+
 def collect(obj, key=""):
     """All on-screen strings in a scene dict as (key, text)."""
     out = []
     if isinstance(obj, str):
-        if key not in ("type",):
+        if key not in NON_DISPLAY:
             out.append((key, obj))
     elif isinstance(obj, dict):
         for k, v in obj.items():
@@ -253,6 +260,34 @@ def text_checks(spec, lines, bounds, facts, legacy):
             if not ok:
                 weakest = min(comps, key=comps.get)
                 add("FAIL", "REHOOK_SCORE", f'Rehook "{first}" scores {ov} (needs 60+, every part 40+, no flags; weakest: {weakest} {comps[weakest]}). Write sharper candidates.')
+    # reach signals (Instagram: send/save, replay, finish): one send-worthy line and a replay design are mandatory
+    sh = facts.get("share")
+    if not sh:
+        add("FAIL", "SHARE_MISSING", 'The facts file needs "share": {"line": N, "who": "...", "why": "..."}: one script line worth sending to a specific person or saving.')
+    else:
+        n = sh.get("line")
+        if not (isinstance(n, int) and 1 < n < len(lines)) or not sh.get("who") or not sh.get("why"):
+            add("FAIL", "SHARE_LINES", 'share needs a valid script line (not the hook or the closing line) plus "who" it is for and "why" they would send or save it.')
+    rp = facts.get("replay")
+    if not rp or not rp.get("echo") or not rp.get("twist"):
+        add("FAIL", "REPLAY_MISSING", 'The facts file needs "replay": {"echo": "<word from the hook>", "twist": "<how the last line changes how the hook reads on a second watch>"}.')
+    else:
+        last_before_cta = " ".join(lines[-1:]).lower()
+        hook_text = lines[0].lower()
+        if rp["echo"].lower() not in hook_text or rp["echo"].lower() not in last_before_cta:
+            add("FAIL", "REPLAY_ECHO", f'The echo word "{rp["echo"]}" must appear in the first line (the hook) and in the last line.')
+    total_words = sum(len(l.split()) for l in lines)
+    if total_words > 150:
+        add("INFO" if facts.get("length_reason") else "WARN", "LENGTH_LONG", f"Script has {total_words} words (about {total_words / 3.2 + 0.4 * len(lines):.0f} s). Finish rate falls with length: aim for 35 to 45 s (about 105 to 135 words) and cut anything that does not move the story.")
+    # every frame must tie back to the topic AND stand on its own
+    terms_ok = [t.lower() for t in facts.get("topic_terms", [])]
+    if not terms_ok:
+        add("FAIL", "TOPIC_TERMS_MISSING", 'The facts file needs "topic_terms": ["API", "token bucket", ...]: words that tie a frame to the topic. Every scene must show at least one.')
+    else:
+        for i, items in enumerate(onscreen):
+            shown = " ".join(t for k, t in items if k != "kicker").lower()
+            if not any(t in shown for t in terms_ok):
+                add("FAIL", "FRAME_STANDALONE", f"Scene {i + 1} shows nothing that names the topic (needs one of {terms_ok}). A viewer who sees only this frame must know what the video is about.")
     # short labels: stranger test
     for i, items in enumerate(onscreen):
         for k, t in items:
@@ -261,7 +296,7 @@ def text_checks(spec, lines, bounds, facts, legacy):
             nw = len(t.split())
             short = nw <= 2 or (nw == 3 and re.match(r"(a|an|the|one|some)\b", t, re.I))
             if short and not re.search(r"[\d.?!]", t):
-                add("WARN", "SHORT_LABEL", f'Scene {i + 1} {k}: "{t}". Would a stranger understand this alone? Spell out what it is.')
+                add("FAIL", "SHORT_LABEL", f'Scene {i + 1} {k}: "{t}". A frame must be understood on its own. Spell out what it is, in words that tie it to the topic.')
 
     # side-by-side listing for the reviewer
     return onscreen
@@ -311,6 +346,8 @@ def video_checks(path, bounds, sheet_path, ignore_boxes=()):
     dur = float(probe.stdout.strip() or 0)
     if not 30 <= dur <= 60:
         add("FAIL", "DURATION", f"Video is {dur:.1f} s (needs 30 to 60).")
+    elif dur > 50:
+        add("INFO" if LENGTH_REASON else "WARN", "DURATION_LONG", f"Video is {dur:.1f} s. Target 35 to 45 s; over 50 s needs a stated reason in the summary.")
     fps = 10
     raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", path, "-vf", f"fps={fps},scale=270:480", "-f", "rawvideo",
                           "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
@@ -368,6 +405,8 @@ def main():
     if not a.spec and not a.video:
         ap.error("give a spec and/or --video")
     facts = json.load(open(a.facts)) if a.facts else None
+    global LENGTH_REASON
+    LENGTH_REASON = bool(facts and facts.get("length_reason"))
     spec = lines = bounds = onscreen = None
     extra = ""
     if a.spec:
@@ -384,7 +423,7 @@ def main():
             boxes = reel.mascot_boxes() if reel.SPEC.get("mascot") else []
         video_checks(a.video, bounds, a.sheet, boxes)
     report = ["# Check report"]
-    for level in ("FAIL", "WARN"):
+    for level in ("FAIL", "WARN", "INFO"):
         for lv, code, msg in findings:
             if lv == level:
                 report.append(f"- {lv} {code}: {msg}")
