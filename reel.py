@@ -1,3 +1,4 @@
+import stage
 import sys, math, subprocess, os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -540,7 +541,7 @@ def sc_bucket(d, u, a, sc):
     if sc.get("note"):
         d.text((W / 2, 1400), sc["note"], font=REG(28), fill=A(MUTED, a), anchor="mm")
 
-SCENES = {"bucket": sc_bucket, "hook": sc_hook, "flow": sc_flow, "pills": sc_pills, "approval": sc_approval, "cta": sc_cta, "bars": sc_bars, "lane": sc_lane, "scan": sc_scan, "lookup": sc_lookup, "tree": sc_tree, "writes": sc_writes, "steps": sc_steps, "versus": sc_versus, "stat": sc_stat}
+SCENES = {"bucket": sc_bucket, "hook": sc_hook, "flow": sc_flow, "pills": sc_pills, "approval": sc_approval, "cta": sc_cta, "bars": sc_bars, "lane": sc_lane, "scan": sc_scan, "lookup": sc_lookup, "tree": sc_tree, "writes": sc_writes, "steps": sc_steps, "versus": sc_versus, "stat": sc_stat, "stage": lambda d, u, a, sc: None}
 
 def scene_bounds():
     starts = [max(0.0, l[1] - 0.3) if i else 0.0 for i, l in enumerate(SPEC["lines"])]
@@ -593,10 +594,19 @@ def frame(t):
     img = Image.new("RGB", (W, H), BG)
     d = SoftDraw(img)
     spaced(d, (W / 2, 262), SPEC["tag"], MED(26), A(MUTED, 1), 8)
-    for sc, (s0, s1) in zip(SPEC["scenes"], scene_bounds()):
+    bounds = scene_bounds()
+    for sc, (s0, s1) in zip(SPEC["scenes"], bounds):
+        if sc["type"] == "stage": continue
         a = sw(t, s0, s1, 0.3, 0.3 if s1 < DUR else 0.1)
         if a > 0:
             SCENES[sc["type"]](d, t - s0, a, sc)
+    sidx = stage.stage_scene_indices(SPEC)
+    if sidx:                                    # persistent canvas: one layer for a whole run of stage scenes
+        sa = stage.stage_alpha(t, bounds, sidx)
+        if sa > 0:
+            layer = img.copy(); ld = SoftDraw(layer)
+            stage.render(ld, layer, t, SPEC, [l[1] for l in SPEC["lines"]])
+            img.paste(Image.blend(img, layer, sa)); d = SoftDraw(img)
     if SPEC.get("mascot"):
         bounds = scene_bounds()
         idx = max([i for i, (s0, _) in enumerate(bounds) if t >= (s0 + 0.3 if i else 0.0)] or [0])
