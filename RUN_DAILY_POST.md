@@ -12,6 +12,14 @@ One topic, explained at a high level first and then deeper with every swipe, so 
 - Last slide: takeaway, one slide worth sending or saving, and exactly "Follow for one tech topic a day.".
 Each slide adds exactly one new idea and makes the next slide worth swiping to. Never repeat the same point on two slides. Style: `carousel.py` (dark, amber and mint, Inter, mascot on cover and last slide).
 
+## Depth rules (same standard as the story-format reels; see STYLE_GUIDE.md)
+The audience is mature: it knows the basics and wants to know what goes into building or running the thing. So:
+- Level 1 (slides 1-3) stays short and plain, but never opens with a debate or "Stop doing X". The cover promises the mechanism with a number or concrete payoff ("What actually goes into a rate limiter? 4 algorithms, one Redis script.").
+- Levels 2-3 are real mechanism, not summary: every deep slide shows a real command, query, config, header, default value or worked number taken from an official source and quoted verbatim in the facts file (for example `Retry-After: 120`, `INCR` + `EXPIRE` in one Lua `EVAL`, `rate = 42 * ((60-15)/60) + 18 = 49.5`). Use a code block or a worked-calculation block, not a paraphrase.
+- At least 3 sources opened now; one worked example, identical on every slide; invented values labelled "Example"; one true, sourced trade-off or failure mode on a deep slide.
+- Use the same colour for the same thing on every slide, keep text inside its box and at least 24 px for code, plain bold lettering only (no wavy underlines), generic icons (no brand logos).
+- The reviewer is asked whether a mature engineer learns something real on slides 4-6; if not, the post is rewritten, not shipped.
+
 ## 0. Setup
 ```bash
 pip install --break-system-packages -q Pillow numpy scipy
