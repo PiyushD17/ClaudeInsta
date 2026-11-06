@@ -9,7 +9,7 @@
  "illustrative_numbers": [],
  "derived_numbers": {
   "3": "slide 5: three things to clear (prepared transactions, long-running open transactions, replication slots) = recovery steps 1-3 in the docs, which come before step 4 (VACUUM); slide 6/7 recap has 3 points",
-  "2": "slide 1 says about 2 billion because refusal starts a little before the two-billion wraparound point (fewer than three million left); slide 3 two billion older + two billion newer: from the quote 'two billion XIDs that are older and two billion that are newer'"
+  "2": "slide 5 says about two billion because refusal starts a little before the two-billion wraparound point (fewer than three million left); slide 3 two billion older + two billion newer: from the quote 'two billion XIDs that are older and two billion that are newer'"
  },
  "claims": [
   {"say": "Updating or deleting a row does not immediately remove the old version.",
@@ -43,7 +43,7 @@
   {"say": "A row version looks in the past for two billion transactions, then suddenly appears in the future.",
    "source": "https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND",
    "quote": "Therefore, once a row version has been created with a particular normal XID, the row version will appear to be “in the past” for the next two billion transactions, no matter which normal XID we are talking about. If the row version still exists after more than two billion transactions, it will suddenly appear to be in the future.",
-   "slides": [1, 3, 5]},
+   "slides": [3, 5]},
   {"say": "VACUUM marks rows as frozen.",
    "source": "https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND",
    "quote": "The reason that periodic vacuuming solves the problem is that VACUUM will mark rows as frozen, indicating that they were inserted by a transaction that committed sufficiently far in the past that the effects of the inserting transaction are certain to be visible to all current and future transactions.",
@@ -55,7 +55,7 @@
   {"say": "Every table in every database must be vacuumed at least once every two billion transactions.",
    "source": "https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND",
    "quote": "To avoid this, it is necessary to vacuum every table in every database at least once every two billion transactions.",
-   "slides": [1, 4]},
+   "slides": [4]},
   {"say": "Autovacuum is forced at the autovacuum_freeze_max_age, even if autovacuum is disabled.",
    "source": "https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND",
    "quote": "To ensure that this does not happen, autovacuum is invoked on any table that might contain unfrozen rows with XIDs older than the age specified by the configuration parameter autovacuum_freeze_max_age. (This will happen even if autovacuum is disabled.)",
