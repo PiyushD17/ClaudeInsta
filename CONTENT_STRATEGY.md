@@ -34,7 +34,7 @@ Engineers are the core audience: the hook promises the mechanism or the surprisi
 ## 4. Story shape (every reel)
 Hook (0-2 s) -> context with a concrete visual (problem in plain words) -> explanation that shows the mechanism with animation -> payoff (practical lesson, consequence or fix) -> short CTA.
 The video must deliver its promised answer even if the viewer ignores the CTA. One principal idea per scene. If the idea cannot be explained accurately in the time budget, narrow its scope or make it a carousel.
-Length: as short as the mechanism allows. Do not assume longer is better. A single idea that fits in 45 s uses the short-reel procedure (RUN_DAILY.md); the story format (60-150 s) is for mechanisms that really have several steps.
+Length (owner decision, 6 Nov 2026): the STORY FORMAT stays the default, up to 150 s hard maximum, and must be high quality and engaging as described in this file. Only if the idea can really be explained in about 30 s, make it a short reel (RUN_DAILY.md) instead. Do not pad a short idea into a long reel and do not squeeze a multi-step mechanism into 30 s.
 Never add filler scenes to reach a length. Animation: simple diagrams and animated data flows, visual comparisons, clear cause and effect, large readable text, consistent colours, no decoration; never captions that repeat the voice without showing the mechanism.
 
 ## 5. Value test: what the viewer walks away with
