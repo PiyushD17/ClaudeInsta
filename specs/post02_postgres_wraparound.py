@@ -5,7 +5,7 @@ SPEC = {
     "topic": "PostgreSQL wraparound",
     "slides": [
         {"type": "cover_story", "level": 1,
-         "title": [("Without VACUUM,", False), ("a 32-bit counter", True), ("can stop your ", False), ("PostgreSQL ", True), ("writes", False)],
+         "title": [("Without VACUUM, ", False), ("your PostgreSQL ", True), ("can stop accepting ", False), ("writes. ", False), ("Here is how.", True)],
          "meta": ["POSTGRESQL", "TRANSACTION IDS", "VACUUM"]},
 
         {"type": "story", "level": 1, "step": 1, "title": [("PostgreSQL ", False), ("keeps", True), (" old row versions", False)],
