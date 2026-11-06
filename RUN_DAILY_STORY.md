@@ -4,7 +4,7 @@ This procedure REPLACES the short-reel format in RUN_DAILY.md for new videos. Ev
 
 ## Step 0 (new, owner analysis 6 Nov 2026): read CONTENT_STRATEGY.md completely and `results_log.md`
 It sets the hook rules (concrete problem, number, contradiction or consequence; no generic intros), the experiment tag for today's run, the value test, the SEO caption rules, the topic pipeline and the extra deliverable `out/dayNN_brief.md` (its section 8).
-Choose the shortest format that explains the mechanism accurately: if one idea fits in about 45 s use the short-reel procedure in RUN_DAILY.md; use the story format only when the mechanism really has several steps. Longer is not better.
+Format (owner decision, 6 Nov 2026): the story format (up to 150 s) stays the default; it must be high quality and engaging per CONTENT_STRATEGY.md. If the idea can be explained in about 30 s, use the short-reel procedure in RUN_DAILY.md instead. No filler either way.
 Frame the topic as an interesting technical QUESTION or surprising failure ("Why does X happen / what can go wrong"), still answered with the real mechanism, numbers and trade-off from the sources. For AI topics start from a familiar user problem.
 
 ## What is different
