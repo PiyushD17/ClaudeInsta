@@ -29,6 +29,7 @@ Never open with "Today we will learn...", "Understanding the basics of...", "An 
 Use one of: problem ("Your API works fine until traffic spikes"), curiosity ("Why is Redis so fast?"), contradiction ("More servers do not always mean more speed"),
 consequence ("One wrong Kubernetes probe can restart a healthy app"). The opening must make the viewer curious about the explanation and must be TRUE and answered by the video (no clickbait the content does not pay off).
 The existing gates stay: at least 6 candidates from different formulas, best STRONG (70+) on hookscore.py, rehook 60+. In addition, **deliver the three best candidates** with a one-line rationale each and say which is recommended.
+**Deliver the surprise in the first 2 seconds (owner, 6 Nov 2026).** The opening line must already contain the surprising fact or contradiction, not just a question about it. Model: "Your database said COMMIT succeeded. So why isn't your data in the table file yet?" Test every hook: if the surprise only arrives after second 2, rewrite it. Still true, still answered by the video.
 Engineers are the core audience: the hook promises the mechanism or the surprising outcome with a number or concrete stake, never a debate ("Stop doing X").
 
 ## 4. Story shape (every reel)
@@ -36,6 +37,8 @@ Hook (0-2 s) -> context with a concrete visual (problem in plain words) -> expla
 The video must deliver its promised answer even if the viewer ignores the CTA. One principal idea per scene. If the idea cannot be explained accurately in the time budget, narrow its scope or make it a carousel.
 Length (owner decision, 6 Nov 2026): the STORY FORMAT stays the default, up to 150 s hard maximum, and must be high quality and engaging as described in this file. Only if the idea can really be explained in about 30 s, make it a short reel (RUN_DAILY.md) instead. Do not pad a short idea into a long reel and do not squeeze a multi-step mechanism into 30 s.
 Never add filler scenes to reach a length. Animation: simple diagrams and animated data flows, visual comparisons, clear cause and effect, large readable text, consistent colours, no decoration; never captions that repeat the voice without showing the mechanism.
+
+**Give viewers a reason to save (owner, 6 Nov 2026).** Every piece ends with one practical takeaway a viewer can reuse: a configuration warning, a debugging tip, or a simple architecture rule, stated concretely (setting name, command or rule of thumb, with its default or condition). It comes before the CTA, and it is also the first thing the caption's extra-value line repeats as "Save this for ...". A recap of the mechanism alone is not a takeaway.
 
 ## 5. Value test: what the viewer walks away with
 Each piece must leave at least one of: "I finally understand that" / "I did not know that" / "this could help me solve a problem" / "I should save this" / "my colleague would find this useful".
