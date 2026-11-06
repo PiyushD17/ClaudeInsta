@@ -97,7 +97,7 @@
    "quote": "At checkpoint time, all dirty data pages are flushed to disk and a special checkpoint record is written to the WAL file. In the event of a crash, the crash recovery procedure looks at the latest checkpoint record to determine the point in the WAL (known as the redo record) from which it should start the REDO operation."
   },
   {
-   "say": "Each change is appended to the WAL at an insert position called the Log Sequence Number, a byte offset that only increases.",
+   "say": "Each change is appended to the WAL at an insert position, described by a Log Sequence Number, a byte offset that only increases.",
    "source": "https://www.postgresql.org/docs/current/wal-internals.html",
    "quote": "WAL records are appended to the WAL files as each new record is written. The insert position is described by a Log Sequence Number (LSN) that is a byte offset into the WAL, increasing monotonically with each new record."
   },
@@ -152,7 +152,7 @@
    "quote": "The default is 1 GB."
   },
   {
-   "say": "Fourth, REDO: no, the page is not lost. After a crash, PostgreSQL reads the latest checkpoint record to find the redo record, and redoes the changes from that point in the WAL.",
+   "say": "Fourth, REDO: no, the page is not lost, because its WAL record was already flushed. After a crash, PostgreSQL reads the latest checkpoint record to find the redo record, and redoes the changes from that point in the WAL.",
    "source": "https://www.postgresql.org/docs/current/wal-configuration.html",
    "quote": "In the event of a crash, the crash recovery procedure looks at the latest checkpoint record to determine the point in the WAL (known as the redo record) from which it should start the REDO operation. any changes that have not been applied to the data pages can be redone from the WAL records."
   },
@@ -177,7 +177,7 @@
    "quote": "The default value is 200 milliseconds (200ms)."
   },
   {
-   "say": "So a COMMIT flushes only the WAL file; the checkpoint and the REDO replay keep your table safe.",
+   "say": "So by default a COMMIT flushes only the WAL file; the checkpoint and the REDO replay keep your table safe.",
    "source": "https://www.postgresql.org/docs/current/wal-intro.html",
    "quote": "only the WAL file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction. At checkpoint time, all dirty data pages are flushed to disk and a special checkpoint record is written to the WAL file."
   }
