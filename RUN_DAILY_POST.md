@@ -4,6 +4,8 @@ You run unattended. The owner wakes up, downloads your files and posts manually.
 plus caption. A post is NOT a reel: it is read, saved and sent, not watched. Read CLAUDE.md first (brand, writing rules, accuracy rules, mascot, reach signals).
 This file only replaces the video-specific parts (voiceover, scenes, music, animation review). Everything else in CLAUDE.md and RUN_DAILY.md section 2 (research) and section 4b (reviewer) applies.
 
+**First read `CONTENT_STRATEGY.md` (owner analysis, 6 Nov 2026) and `results_log.md`.** For posts it adds: the cover headline follows the hook rules (concrete problem, number, contradiction or consequence, true, answered by the post; no generic intro), the post must leave the reader something worth saving or sending (the send-or-save slide is the delivery), tag the run with an experiment (NUMBER, FAILURE, COUNTER, EVERYDAY-AI, VISUAL), the caption is SEO-aware (main keyword in the first line, related terms where they add meaning, 3-5 hashtags, save/send CTA), and deliver `out/postNN_brief.md` (section 8 of that file: topic and audience, three alternative cover headlines with scores, slide-by-slide storyboard, accuracy caveats, cover headline for a small thumbnail, caption, performance hypothesis with one validating metric such as saves or sends per 100 views, experiment tag). Carousels are the right format when an idea needs more than about 45 s to explain accurately.
+
 ## The idea of the format (v3 story carousel, owner feedback Nov 2026)
 People on Instagram are not looking for code. A post is a STORY that unfolds as they swipe: every slide is one chapter that explains one technical concept
 in depth, in words, and ends on a rehook that makes the next swipe necessary. Concepts and mechanisms, never syntax. Model post: `specs/post01_kubernetes_probes.py` (v3).
@@ -81,7 +83,7 @@ Ask it to: (1) for every sentence on every slide find the claim and quote that s
 
 ## 8. Caption (ig-caption skill)
 First line = the cover hook. Then 3-6 short lines that recap the climb (what slide 1 promises, what slide 6 reveals) without repeating the slides word for word. One line that asks the viewer to save it or send it to the person named in `share`.
-End with "Follow for one tech topic a day." and 3-5 hashtags. At most one emoji. No invented facts. Write `out/postNN_caption.txt`.
+End with "Follow for one tech topic a day." and 3-5 hashtags. Put the main technical keyword naturally in the first line and keep the caption readable (CONTENT_STRATEGY.md section 7). At most one emoji. No invented facts. Write `out/postNN_caption.txt`.
 
 ## 9. Deliver
 SendUserFile each: the slide PNGs in order (`out/postNN_s01.png` ... these are the files to upload to Instagram as a carousel, in this order), `out/postNN_caption.txt`, `out/postNN_hooks.txt` (candidates with scores, final marked),

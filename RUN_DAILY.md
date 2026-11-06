@@ -4,6 +4,8 @@ You are running unattended at the start of the day. The owner will wake up, down
 ElevenLabs and post manually. Your job: deliver one finished, fact-checked, 30-60 second animated video plus script and caption.
 Read CLAUDE.md first (brand and writing rules). Where this file and CLAUDE.md differ, this file wins.
 
+**First read `CONTENT_STRATEGY.md` (owner analysis, 6 Nov 2026).** Its rules apply to every run: concrete, true hooks (problem, number, contradiction, consequence; never a generic intro), the value test, the experiment tag, SEO-aware captions, the brief file `out/dayNN_brief.md`, and the medians-based reading of the results log.
+
 ## 0. Setup (about 1 minute)
 ```bash
 pip install --break-system-packages -q Pillow numpy scipy   # skip if already present
@@ -165,7 +167,7 @@ the files so far, so the owner can decide. A late correct video beats an on-time
 
 
 ## 5. Caption
-Run ig-caption. First line = the hook (visible before "more"). Two or three short lines of value, then "Follow for one tech topic a day."
+Run ig-caption, then apply CONTENT_STRATEGY.md section 7 (main technical keyword naturally in the first line, related terms only where they add meaning, readable sentences, 3-5 relevant hashtags, never claim something is trending, a save/send CTA tied to the share line). First line = the hook (visible before "more"). Two or three short lines of value, then "Follow for one tech topic a day."
 3-5 relevant hashtags. At most one emoji. No invented facts.
 
 ## 6. Deliver (the owner downloads these in the morning)
@@ -175,6 +177,7 @@ Write these files and send each with SendUserFile:
 - `out/dayNN_<slug>_bgm.wav`
 - `out/dayNN_script.txt`: the voiceover script exactly as it should be pasted into ElevenLabs, one paragraph per line
 - `out/dayNN_caption.txt`
+- `out/dayNN_brief.md`: topic and audience, three alternative hooks with scores and the recommended one, storyboard (timing, exact on-screen text, visuals, transitions, purpose), accuracy caveats, cover headline, caption, audio note, performance hypothesis and validating metric, experiment tag (CONTENT_STRATEGY.md section 8)
 - `out/dayNN_hooks.txt`: every candidate hook with its score (final one marked); `out/dayNN_rehooks.txt` likewise for the rehook
 - `out/dayNN_sources.md`: each source as a link with what it supports, plus the claim table (what the video says, source link, quote)
 - `out/dayNN_check.md`: the checker report and the reviewer's verdict
@@ -191,7 +194,7 @@ If neither works, say so in the summary and list the row to add by hand.
 The topics log document has a "Results" table (Day, views, average watch time, finished %, replays, sends, saves, notes). The owner pastes numbers from Instagram Insights
 a few days after posting. At the start of each run, read it (if any rows are filled) and say in the summary which hook formula, rehook pattern, length and send-line type
 did best and worst so far (only with at least 3 rows; otherwise say there is not enough data). Bias the next hook formulas toward the winners but never skip the gates. Never invent numbers.
-The repo copy is `results_log.md`.
+The repo copy is `results_log.md`. Use medians as well as means (one early outlier distorts the mean); report a pattern only with at least 3 filled rows per experiment tag or formula; missing metrics are "n/a", never estimated.
 
 ## Quality gates (do not deliver if any fails)
 - Hook: final spoken hook and on-screen hook score STRONG (70+) on hookscore.py, or the summary starts with "HOOK BELOW TARGET" after 5 rounds.
