@@ -21,3 +21,4 @@ Never invent numbers. The daily run reads this and reports which patterns win on
 
 ## Columns to fill from now on (use "n/a" when Instagram does not show it; never estimate)
 Day | Experiment tag (NUMBER / FAILURE / COUNTER / EVERYDAY-AI / VISUAL) | Hook formula | Length (s) | Views 24 h | Views 72 h | Accounts reached | Avg watch time (s) | Retention / completion | Likes | Saves | Shares/sends | Comments | Follows from reel | Notes
+| 12 | COUNTER (+NUMBER) | "Why does a PostgreSQL COMMIT flush 1 file, not your table?" | 98 | | | | | | | | | | | |
