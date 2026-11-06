@@ -20,6 +20,7 @@ conflicts with an owner rule in CLAUDE.md (accuracy, writing rule, no code in ca
 | COUNTER | "More cache can make things slower" | do surprising (but true) facts increase shares? |
 | EVERYDAY-AI | "Why ChatGPT forgets what you told it" | does broad, familiar framing widen the audience? |
 | VISUAL | "SQL scan vs index lookup" | do side-by-side visuals improve completion? |
+| COMPARE | "Nginx vs load balancer vs API gateway: which one answers which problem?" | do open-loop comparisons (a set of options the viewer wants to see ranked or resolved) raise retention, saves and shares? |
 Rules: put the tag in the topics log "Hook angle" cell and the results log "Hook formula" cell. Do not declare a winner from one or two examples. Compare medians (not only means) once 10-15 more reels exist.
 Prefer concrete technical problems, counterintuitive outcomes and practical engineering questions over abstract topic titles ("Understanding X"). AI topics need a familiar user problem
 ("Why can giving AI more information make its answer worse?"), but never state a system-dependent behaviour as universal ("can", "often", "in this setup").
@@ -31,6 +32,14 @@ consequence ("One wrong Kubernetes probe can restart a healthy app"). The openin
 The existing gates stay: at least 6 candidates from different formulas, best STRONG (70+) on hookscore.py, rehook 60+. In addition, **deliver the three best candidates** with a one-line rationale each and say which is recommended.
 **Deliver the surprise in the first 2 seconds (owner, 6 Nov 2026).** The opening line must already contain the surprising fact or contradiction, not just a question about it. Model: "Your database said COMMIT succeeded. So why isn't your data in the table file yet?" Test every hook: if the surprise only arrives after second 2, rewrite it. Still true, still answered by the video.
 Engineers are the core audience: the hook promises the mechanism or the surprising outcome with a number or concrete stake, never a debate ("Stop doing X").
+
+### Open-loop comparison pattern (owner idea, 6 Nov 2026; experiment tag COMPARE)
+Viewers want to see how each option in a set turns out, so a comparison opens a loop that stays open until every option has been resolved. Use it for "X vs Y (vs Z)" topics, as a reel or a carousel: API gateway vs load balancer, CDN vs API gateway, Nginx vs load balancer, PostgreSQL vs MySQL, Python vs Rust, and similar.
+- Hook: name the set and promise the resolution ("3 tiers of caching: only 1 fits your read-heavy API"). Tease the options in order and keep a visible tracker (basic / medium / premium style tiers, or option A, B, C) so the viewer knows which are still unresolved.
+- Resolve the options one by one on screen with the same criteria for each (the same worked example, the same 2-3 dimensions), and answer the loop at the end with a decision rule ("choose X when ..., Y when ...").
+- Fairness and accuracy come first: compare on dimensions the sources state, name the trade-offs of every option, no "X is better" verdict without its condition, no invented benchmarks, scores or rankings, and no tiers or ratings that the sources do not support. A tier label is a presentation device only when it follows a real documented difference.
+- The practical takeaway (section 5) is the decision rule or a configuration warning for the winning case. Carousel: one option per slide with a rehook, then a decision-rule slide.
+- Pick comparisons where the options are often confused or used together in real stacks; avoid language or vendor flame wars. Still label the run COMPARE and compare medians only after enough rows.
 
 ## 4. Story shape (every reel)
 Hook (0-2 s) -> context with a concrete visual (problem in plain words) -> explanation that shows the mechanism with animation -> payoff (practical lesson, consequence or fix) -> short CTA.
@@ -68,6 +77,7 @@ Written from the run's real artefacts (do not invent anything), one file with th
 9. Experiment tag (section 2).
 
 ## 9. Topic pipeline (priority experiments; always check the topics log first and never repeat a covered topic)
+Comparison topics (tag COMPARE, see the open-loop pattern above): API gateway vs load balancer vs reverse proxy; CDN vs API gateway; Nginx vs load balancer; PostgreSQL vs MySQL (specific, sourced differences only); Python vs Rust (a narrow, sourced angle).
 Candidates from the analysis: what actually happens on a cache miss; why AI hallucinations happen; why a Kubernetes Pod keeps restarting (CrashLoopBackOff; only if it adds an insight beyond the covered probes post);
 what happens when two users update the same database record; why microservices sometimes create more problems; what an AI agent does differently from a chatbot; how a message queue absorbs traffic spikes; why caching can make an application slower; why distributed systems return stale data.
 Already covered (do not repeat without a genuinely new insight): database indexes, load balancer algorithms, 429 and rate limiting, availability zones, context window, transactions, RAG, Kubernetes probes, Redis speed.
