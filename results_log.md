@@ -21,3 +21,4 @@ Never invent numbers. The daily run reads this and reports which patterns win on
 
 ## Columns to fill from now on (use "n/a" when Instagram does not show it; never estimate)
 Day | Experiment tag (NUMBER / FAILURE / COUNTER / EVERYDAY-AI / VISUAL) | Hook formula | Length (s) | Views 24 h | Views 72 h | Accounts reached | Avg watch time (s) | Retention / completion | Likes | Saves | Shares/sends | Comments | Follows from reel | Notes
+| P02 | PostgreSQL transaction ID wraparound (post, recreated) | FAILURE | consequence + number (Without X, your Y can refuse writes) | recap slide 7: send to the on-call engineer (40M warn, 3M refuse) | | | | | | | | | | |
