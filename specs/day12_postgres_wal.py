@@ -1,16 +1,16 @@
 LINES = [
-    "PostgreSQL survives a crash without writing your table at COMMIT, and replays 1 log instead.",
-    "PostgreSQL uses a write-ahead log, WAL: changes to data files must be written only after those changes have been logged.",
+    "Why does a PostgreSQL COMMIT flush 1 file, not your table?",
+    "The answer is the write-ahead log, WAL: changes to data files must be written only after those changes have been logged.",
     "The path has a WAL record, a flush at COMMIT, a checkpoint, and REDO after a crash.",
     "First, the WAL record. Each change is appended to the WAL at an insert position called the Log Sequence Number, a byte offset that only increases. WAL files live in pg_wal, normally 16 MB each, named in ever-increasing numbers.",
-    "Only 1 file is flushed at COMMIT. Which one, the WAL or your data files?",
-    "Second, the flush. At COMMIT, only the WAL file has to be flushed. Changed data pages can be redone from the WAL records after a crash: roll-forward recovery, also known as REDO.",
+    "Second, the flush. At COMMIT, only the WAL file has to be flushed to disk, not every data file the transaction changed. That means significantly fewer disk writes.",
+    "If your 1 changed table page is still only in memory, would a crash lose it?",
     "Third, the checkpoint. At checkpoint time, all dirty data pages are flushed to disk and a checkpoint record is written to the WAL. The CHECKPOINT command forces one.",
     "A checkpoint begins every checkpoint_timeout, 5 minutes by default, or when max_wal_size, 1 GB by default, is about to be exceeded.",
-    "Fourth, REDO. After a crash, PostgreSQL reads the latest checkpoint record to find the redo record, and starts REDO from that point in the WAL.",
+    "Fourth, REDO: no, the page is not lost. After a crash, PostgreSQL reads the latest checkpoint record to find the redo record, and redoes the changes from that point in the WAL.",
     "Shorter checkpoint intervals mean faster crash recovery, but dirty data pages are flushed more often.",
     "The catch: with synchronous_commit off, COMMIT does not wait for the flush. A crash can lose recent transactions, for up to three times wal_writer_delay, 200 ms by default. The database stays consistent.",
-    "So when your COMMIT survives a crash, you know why: the WAL flush, the checkpoint and the replay. Follow for one tech topic a day.",
+    "So a COMMIT flushes only the WAL file; the checkpoint and the REDO replay keep your table safe. Follow for one tech topic a day.",
 ]
 
 def wi(line, token, k=1):
@@ -28,7 +28,7 @@ PG_OUT = [(450, 733), (640, 733)]       # shared buffers -> data files
 REDO_OUT = [(640, 893), (450, 733)]     # pg_wal -> shared buffers
 
 def pkt(pid, t, path, text, color="mint", dur=0.9, out=None):
-    o = {"kind": "packet", "id": pid, "t": t, "path": path, "text": text, "color": color, "dur": dur, "w": 110, "h": 44}
+    o = {"kind": "packet", "id": pid, "t": t, "path": path, "text": text, "color": color, "dur": dur, "w": 110, "h": 44, "hold": False}
     if out is not None: o["out"] = out
     return o
 
@@ -47,11 +47,11 @@ SPEC = {
         # 1 hook: the diagram the whole story runs on is there from frame 0
         {"type": "stage", "objects": [
             {"kind": "label", "id": "k", "t": -0.5, "x": 540, "y": 292, "text": "TECH IN A BITE", "size": 28, "color": "amber", "align": "c", "font": "med"},
-            {"kind": "title", "id": "h1", "t": -0.5, "x": 540, "y": 326, "parts": [("PostgreSQL survives a crash\nwithout writing your ", "white"), ("table", "amber")], "size": 54, "maxw": 820, "underline": False},
-            {"kind": "title", "id": "h2", "t": wi(1, "commit"), "x": 540, "y": 482, "parts": [("at COMMIT · replays 1 log instead", "mint")], "size": 34, "underline": False, "maxw": 820},
+            {"kind": "title", "id": "h1", "t": -0.5, "x": 540, "y": 326, "parts": [("Why does COMMIT flush\n", "white"), ("1 file", "amber"), (", not your table?", "white")], "size": 52, "maxw": 760, "underline": False},
+            {"kind": "title", "id": "h2", "t": wi(1, "table"), "x": 540, "y": 482, "parts": [("PostgreSQL · WAL · checkpoint · REDO", "mint")], "size": 34, "underline": False, "maxw": 820},
             {"kind": "panel", "id": "mem", "t": -0.4, "x": 40, "y": DY, "w": 490, "h": 400, "label": "Memory", "icon": "server", "color": "cyan"},
             {"kind": "panel", "id": "sb", "in": "mem", "t": -0.35, "x": 60, "y": DY + 82, "w": 450, "h": 150, "label": "Shared buffers", "level": 1},
-            {"kind": "grid", "id": "sbg", "in": "sb", "t": -0.35, "x": 82, "y": DY + 170, "w": 406, "h": 46, "cols": 8, "rows": 1, "n": 0, "color": "amber"},
+            {"kind": "grid", "id": "sbg", "in": "sb", "t": -0.35, "x": 82, "y": DY + 170, "w": 406, "h": 46, "cols": 8, "rows": 1, "n": 1, "color": "amber"},
             {"kind": "panel", "id": "wb", "in": "mem", "t": -0.3, "x": 60, "y": DY + 242, "w": 450, "h": 150, "label": "WAL buffers", "level": 1},
             {"kind": "grid", "id": "wbg", "in": "wb", "t": -0.3, "x": 82, "y": DY + 330, "w": 406, "h": 46, "cols": 8, "rows": 1, "n": 0, "color": "mint"},
             {"kind": "panel", "id": "disk", "t": -0.4, "x": 550, "y": DY, "w": 490, "h": 400, "label": "Disk", "icon": "database", "color": "amber"},
@@ -59,31 +59,32 @@ SPEC = {
             {"kind": "grid", "id": "dfg", "in": "df", "t": -0.35, "x": 592, "y": DY + 170, "w": 406, "h": 46, "cols": 8, "rows": 1, "n": 0, "color": "amber"},
             {"kind": "panel", "id": "pw", "in": "disk", "t": -0.3, "x": 570, "y": DY + 242, "w": 450, "h": 150, "label": "pg_wal", "level": 1},
             {"kind": "grid", "id": "pwg", "in": "pw", "t": -0.3, "x": 592, "y": DY + 330, "w": 406, "h": 46, "cols": 8, "rows": 1, "n": 0, "color": "mint"},
-            pkt("p1", wi(1, "commit"), WB_OUT, "WAL")],
-         "events": [{"id": "sbg", "t": wi(1, "table"), "dur": 0.3, "set": {"n": 1}},
-                    {"id": "wbg", "t": wi(1, "commit"), "dur": 0.3, "set": {"n": 1}},
-                    {"id": "wbg", "t": wi(1, "replays"), "dur": 0.3, "set": {"n": 0}},
-                    {"id": "pwg", "t": wi(1, "replays"), "dur": 0.3, "set": {"n": 1}},
-                    {"id": "pw", "t": wi(1, "log"), "dur": 0.0, "set": {"hl": True}}]},
-        # 2 why: write-ahead log
+            pkt("p1", wi(1, "flush"), WB_OUT, "WAL")],
+         "events": [{"id": "wbg", "t": wi(1, "flush"), "dur": 0.3, "set": {"n": 1}},
+                    {"id": "wbg", "t": wi(1, "file"), "dur": 0.3, "set": {"n": 0}},
+                    {"id": "pwg", "t": wi(1, "file"), "dur": 0.3, "set": {"n": 1}},
+                    {"id": "pw", "t": wi(1, "file"), "dur": 0.0, "set": {"hl": True}},
+                    {"id": "pw", "t": wi(1, "table"), "dur": 0.0, "set": {"hl": False}},
+                    {"id": "df", "t": wi(1, "table"), "dur": 0.0, "set": {"hl": True}}]},
+        # 2 the answer: write-ahead log
         {"type": "stage", "objects": [
             TITLE(2, [("Write-ahead log: ", "mint"), ("log first", "white")]),
             pkt("p2", wi(2, "have"), WB_OUT, "WAL")],
          "clear": ["k", "h1", "h2"],
-         "events": [{"id": "pw", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
+         "events": [{"id": "df", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
                     {"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 0}},
                     {"id": "pwg", "t": 0.0, "dur": 0.0, "set": {"n": 0}},
-                    {"id": "sbg", "t": wi(2, "changes"), "dur": 0.3, "set": {"n": 2}},
+                    {"id": "sbg", "t": wi(2, "changes"), "dur": 0.3, "set": {"n": 1}},
                     {"id": "df", "t": wi(2, "data"), "dur": 0.0, "set": {"hl": True}},
                     {"id": "df", "t": wi(2, "after"), "dur": 0.0, "set": {"hl": False}},
-                    {"id": "wbg", "t": wi(2, "after"), "dur": 0.3, "set": {"n": 2}},
+                    {"id": "wbg", "t": wi(2, "after"), "dur": 0.3, "set": {"n": 1}},
                     {"id": "wbg", "t": wi(2, "logged"), "dur": 0.3, "set": {"n": 0}},
-                    {"id": "pwg", "t": wi(2, "logged"), "dur": 0.3, "set": {"n": 2}},
+                    {"id": "pwg", "t": wi(2, "logged"), "dur": 0.3, "set": {"n": 1}},
                     {"id": "pw", "t": wi(2, "logged"), "dur": 0.0, "set": {"hl": True}}]},
         # 3 the path
         {"type": "stage", "objects": [
-            {"kind": "dots", "id": "steps", "t": -0.2, "x": 540, "y": 335, "n": 4, "active": -1, "spacing": 235,
-             "labels": ["WAL record", "Flush at COMMIT", "Checkpoint", "REDO"]}],
+            {"kind": "dots", "id": "steps", "t": -0.2, "x": 540, "y": 335, "n": 4, "active": -1, "spacing": 215,
+             "labels": ["WAL record", "COMMIT flush", "Checkpoint", "REDO"]}],
          "clear": ["t2", "p2"],
          "events": [{"id": "pw", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
                     {"id": "steps", "t": wi(3, "wal"), "dur": 0.0, "set": {"active": 0}},
@@ -102,43 +103,40 @@ SPEC = {
                 {"text": "000000010000000000000001", "color": "mint", "at": wi(4, "ever-increasing")}], size=29, cps=60)],
          "clear": [], "focus": ["wb", "pw", "steps"],
          "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 0}},
-                    {"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 2}},
+                    {"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 1}},
                     {"id": "pwg", "t": 0.0, "dur": 0.0, "set": {"n": 0}},
                     {"id": "wbg", "t": wi(4, "change"), "dur": 0.3, "set": {"n": 1}},
-                    {"id": "wbg", "t": wi(4, "appended"), "dur": 0.3, "set": {"n": 2}},
+                    {"id": "wbg", "t": wi(4, "appended"), "dur": 0.3, "set": {"n": 1}},
                     {"id": "wb", "t": wi(4, "wal"), "dur": 0.0, "set": {"hl": True}},
                     {"id": "wb", "t": wi(4, "pg_wal"), "dur": 0.0, "set": {"hl": False}},
                     {"id": "pw", "t": wi(4, "pg_wal"), "dur": 0.0, "set": {"hl": True}}]},
-        # 5 rehook: which file does COMMIT flush?
+        # 5 flush: only the WAL is flushed at COMMIT (answer to the hook)
         {"type": "stage", "objects": [
-            {"kind": "question", "id": "q5", "t": -0.25, "x": 540, "y": 466, "parts": [("Only 1 file is flushed at COMMIT. ", "white"), ("Which one?", "amber")], "size": 34},
-            {"kind": "pill", "id": "a5", "t": wi(5, "wal"), "x": 300, "y": 1130, "text": "WAL file?", "color": "mint", "size": 44, "maxw": 440},
-            {"kind": "pill", "id": "b5", "t": wi(5, "data"), "x": 780, "y": 1130, "text": "Data files?", "color": "amber", "size": 44, "maxw": 440}],
-         "clear": ["t4", "r4"], "focus": ["df", "pw", "steps"],
-         "events": [{"id": "pw", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
-                    {"id": "wbg", "t": 0.0, "dur": 0.0, "set": {"n": 2}},
-                    {"id": "wb", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
-                    {"id": "pw", "t": wi(5, "wal"), "dur": 0.0, "set": {"hl": True}},
-                    {"id": "pw", "t": wi(5, "data"), "dur": 0.0, "set": {"hl": False}},
-                    {"id": "df", "t": wi(5, "data"), "dur": 0.0, "set": {"hl": True}}]},
-        # 6 flush: only the WAL is flushed at COMMIT
-        {"type": "stage", "objects": [
-            TITLE(6, [("COMMIT: ", "mint"), ("flush the WAL only", "white")]),
-            pkt("p6", wi(6, "flushed"), WB_OUT, "WAL"),
-            term("r6", "PostgreSQL docs: settings and functions", [
-                {"text": "synchronous_commit = on   -- default", "color": "white", "at": wi(6, "commit")},
-                {"text": "> SELECT pg_current_wal_flush_lsn();", "type": True, "color": "white", "at": wi(6, "flushed")},
-                {"text": "-- last location known to be", "color": "gray", "at": wi(6, "flushed")},
-                {"text": "-- written to durable storage", "color": "gray", "at": wi(6, "changed")},
-                {"text": "REDO = roll-forward recovery", "color": "mint", "hl": True, "hlcolor": "mint", "at": wi(6, "roll-forward")}], size=29, cps=45)],
-         "clear": ["q5", "a5", "b5"], "focus": [],
+            TITLE(5, [("COMMIT: ", "mint"), ("flush the WAL only", "white")]),
+            pkt("p5", wi(5, "wal"), WB_OUT, "WAL"),
+            term("r5", "PostgreSQL docs: settings and functions", [
+                {"text": "synchronous_commit = on   -- default", "color": "white", "at": wi(5, "commit")},
+                {"text": "> SELECT pg_current_wal_flush_lsn();", "type": True, "color": "white", "at": wi(5, "flushed")},
+                {"text": "-- last location known to be", "color": "gray", "at": wi(5, "disk")},
+                {"text": "-- written to durable storage", "color": "gray", "at": wi(5, "not")}], size=29, cps=45)],
+         "clear": ["t4", "r4"], "focus": [],
          "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 1}},
-                    {"id": "df", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
-                    {"id": "pw", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
-                    {"id": "wbg", "t": wi(6, "flushed"), "dur": 0.3, "set": {"n": 0}},
-                    {"id": "pwg", "t": wi(6, "changed"), "dur": 0.3, "set": {"n": 2}},
-                    {"id": "sb", "t": wi(6, "changed"), "dur": 0.0, "set": {"hl": True}},
-                    {"id": "sb", "t": wi(6, "roll-forward"), "dur": 0.0, "set": {"hl": False}}]},
+                    {"id": "wb", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
+                    {"id": "wbg", "t": wi(5, "flushed"), "dur": 0.3, "set": {"n": 0}},
+                    {"id": "pwg", "t": wi(5, "flushed"), "dur": 0.3, "set": {"n": 1}},
+                    {"id": "pw", "t": wi(5, "wal"), "dur": 0.0, "set": {"hl": True}},
+                    {"id": "pw", "t": wi(5, "not"), "dur": 0.0, "set": {"hl": False}},
+                    {"id": "df", "t": wi(5, "not"), "dur": 0.0, "set": {"hl": True}},
+                    {"id": "df", "t": wi(5, "significantly"), "dur": 0.0, "set": {"hl": False}}]},
+        # 6 rehook: would a crash lose the unflushed table page?
+        {"type": "stage", "objects": [
+            {"kind": "question", "id": "q6", "t": -0.25, "x": 540, "y": 466, "parts": [("Table page still in memory. ", "white"), ("Lost in a crash?", "amber")], "size": 34},
+            {"kind": "pill", "id": "a6", "t": wi(6, "table"), "x": 540, "y": 1090, "text": "TABLE PAGE: MEMORY ONLY", "color": "amber", "size": 40, "maxw": 900},
+            {"kind": "pill", "id": "b6", "t": wi(6, "crash"), "x": 540, "y": 1210, "text": "CRASH", "color": "pink", "size": 44, "maxw": 600}],
+         "clear": ["t5", "r5", "p5"], "focus": ["mem", "steps"],
+         "events": [{"id": "df", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
+                    {"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 1}},
+                    {"id": "mem", "t": wi(6, "crash"), "dur": 0.0, "set": {"hl": True}}]},
         # 7 checkpoint
         {"type": "stage", "objects": [
             TITLE(7, [("Checkpoint: ", "amber"), ("dirty pages to disk", "white")]),
@@ -146,14 +144,14 @@ SPEC = {
             term("r7", "PostgreSQL docs: CHECKPOINT command", [
                 {"text": "> CHECKPOINT;", "type": True, "color": "white", "at": wi(7, "checkpoint", 4)},
                 {"text": "-- forces an immediate checkpoint", "color": "gray", "at": wi(7, "forces")}], size=29, h=200, cps=40)],
-         "clear": ["t6", "r6", "p6"], "focus": [],
+         "clear": ["q6", "a6", "b6"], "focus": [],
          "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 2}},
-                    {"id": "sb", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
+                    {"id": "mem", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
                     {"id": "sb", "t": wi(7, "dirty"), "dur": 0.0, "set": {"hl": True}},
                     {"id": "sbg", "t": wi(7, "flushed"), "dur": 0.3, "set": {"n": 0}},
                     {"id": "sb", "t": wi(7, "flushed"), "dur": 0.0, "set": {"hl": False}},
-                    {"id": "dfg", "t": wi(7, "disk"), "dur": 0.3, "set": {"n": 2}},
-                    {"id": "pwg", "t": wi(7, "record"), "dur": 0.3, "set": {"n": 3}},
+                    {"id": "dfg", "t": wi(7, "disk"), "dur": 0.3, "set": {"n": 1}},
+                    {"id": "pwg", "t": wi(7, "record"), "dur": 0.3, "set": {"n": 2}},
                     {"id": "pw", "t": wi(7, "record"), "dur": 0.0, "set": {"hl": True}}]},
         # 8 when a checkpoint begins
         {"type": "stage", "objects": [
@@ -165,26 +163,26 @@ SPEC = {
                     {"id": "c1", "t": wi(8, "5"), "dur": 0.0, "set": {"hl": True}},
                     {"id": "c1", "t": wi(8, "or"), "dur": 0.0, "set": {"hl": False}},
                     {"id": "c2", "t": wi(8, "1"), "dur": 0.0, "set": {"hl": True}},
-                    {"id": "pwg", "t": wi(8, "exceeded"), "dur": 0.8, "set": {"n": 8, "color": "pink"}},
+                    {"id": "pwg", "t": wi(8, "exceeded"), "dur": 0.3, "set": {"n": 8, "color": "pink"}},
                     {"id": "c2", "t": wi(8, "exceeded"), "dur": 0.0, "set": {"value_color": "pink"}}]},
-        # 9 REDO after a crash
+        # 9 REDO after a crash (payoff of the rehook)
         {"type": "stage", "objects": [
-            TITLE(9, [("Crash recovery: ", "pink"), ("REDO from the checkpoint", "white")]),
-            pkt("p9", wi(9, "starts"), REDO_OUT, "REDO", color="mint", dur=1.0),
+            TITLE(9, [("Crash recovery: ", "pink"), ("REDO", "white")]),
+            pkt("p9", wi(9, "redoes"), REDO_OUT, "REDO", color="mint", dur=1.0),
             term("r9", "PostgreSQL docs: crash recovery", [
                 {"text": "latest checkpoint record", "color": "white", "at": wi(9, "reads")},
-                {"text": "-> redo record", "color": "amber", "at": wi(9, "redo")},
-                {"text": "-> REDO from that point", "color": "mint", "hl": True, "hlcolor": "mint", "at": wi(9, "starts")}], size=29, h=260, cps=40)],
+                {"text": "-> redo record", "color": "amber", "at": wi(9, "find")},
+                {"text": "-> REDO from that point", "color": "mint", "hl": True, "hlcolor": "mint", "at": wi(9, "redoes")}], size=29, h=260, cps=40)],
          "clear": ["t8", "c1", "c2"], "focus": [],
          "events": [{"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 3}},
                     {"id": "pw", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
-                    {"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 3}},
-                    {"id": "pwg", "t": 0.0, "dur": 0.0, "set": {"n": 8, "color": "mint"}},
+                    {"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 1}},
+                    {"id": "pwg", "t": 0.0, "dur": 0.0, "set": {"n": 4, "color": "mint"}},
                     {"id": "mem", "t": wi(9, "crash"), "dur": 0.0, "set": {"status": "cross", "color": "pink"}},
                     {"id": "sbg", "t": wi(9, "crash"), "dur": 0.3, "set": {"n": 0}},
                     {"id": "pw", "t": wi(9, "reads"), "dur": 0.0, "set": {"hl": True}},
-                    {"id": "sbg", "t": wi(9, "starts"), "dur": 0.8, "set": {"n": 3}},
-                    {"id": "mem", "t": wi(9, "starts"), "dur": 0.0, "set": {"status": "check", "color": "cyan"}}]},
+                    {"id": "sbg", "t": wi(9, "redoes"), "dur": 0.8, "set": {"n": 1}},
+                    {"id": "mem", "t": wi(9, "redoes"), "dur": 0.0, "set": {"status": "check", "color": "cyan"}}]},
         # 10 the trade-off (send-or-save)
         {"type": "stage", "objects": [
             TITLE(10, [("Shorter interval: ", "mint"), ("faster recovery", "white")]),
@@ -205,19 +203,19 @@ SPEC = {
                 {"text": "risk: data loss, not corruption", "color": "mint", "at": wi(11, "database")}], size=29, h=300, cps=40)],
          "clear": ["t10", "b1", "b2", "n10"], "focus": [],
          "events": [{"id": "sbg", "t": 0.0, "dur": 0.0, "set": {"n": 0}},
-                    {"id": "mem", "t": 0.0, "dur": 0.0, "set": {"status": None}},
-                    {"id": "pwg", "t": 0.0, "dur": 0.0, "set": {"n": 5, "color": "mint"}},
-                    {"id": "wbg", "t": wi(11, "does"), "dur": 0.3, "set": {"n": 2, "color": "pink"}},
+                    {"id": "mem", "t": 0.0, "dur": 0.0, "set": {"status": None, "color": "cyan"}},
+                    {"id": "pwg", "t": 0.0, "dur": 0.0, "set": {"n": 3, "color": "mint"}},
+                    {"id": "wbg", "t": wi(11, "does"), "dur": 0.3, "set": {"n": 1, "color": "pink"}},
                     {"id": "mem", "t": wi(11, "crash"), "dur": 0.0, "set": {"status": "cross", "color": "pink"}},
                     {"id": "wbg", "t": wi(11, "lose"), "dur": 0.3, "set": {"n": 0}},
                     {"id": "df", "t": wi(11, "consistent"), "dur": 0.0, "set": {"status": "check"}}]},
         # 12 recap and follow
         {"type": "stage", "objects": [
-            {"kind": "dots", "id": "recap", "t": -0.2, "x": 540, "y": 640, "n": 3, "active": -1, "spacing": 300, "labels": ["WAL flush", "Checkpoint", "Replay"],
+            {"kind": "dots", "id": "recap", "t": -0.2, "x": 540, "y": 640, "n": 3, "active": -1, "spacing": 300, "labels": ["WAL flush", "Checkpoint", "REDO"],
              "colors": ["mint", "amber", "cyan"], "caption": [("Inside a PostgreSQL ", "white"), ("COMMIT", "amber")]},
             {"kind": "endcard", "id": "end", "t": wi(12, "follow"), "y": 1020, "text": "@techinabite"},
             {"kind": "title", "id": "endl", "t": wi(12, "follow"), "x": 540, "y": 1180, "parts": [("Follow for one tech topic a day.", "white")], "size": 36, "underline": False}],
-         "events": [{"id": "recap", "t": wi(12, "wal"), "dur": 0.0, "set": {"active": 0}}, {"id": "recap", "t": wi(12, "checkpoint"), "dur": 0.0, "set": {"active": 1}}, {"id": "recap", "t": wi(12, "replay"), "dur": 0.0, "set": {"active": 2}}],
+         "events": [{"id": "recap", "t": wi(12, "wal"), "dur": 0.0, "set": {"active": 0}}, {"id": "recap", "t": wi(12, "checkpoint"), "dur": 0.0, "set": {"active": 1}}, {"id": "recap", "t": wi(12, "redo"), "dur": 0.0, "set": {"active": 2}}],
          "clear": True},
     ],
 }

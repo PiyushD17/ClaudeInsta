@@ -1,37 +1,93 @@
 {
  "terms": [
-  {"use": "write-ahead log", "never_say": ["redo log", "transaction log file"]},
-  {"use": "WAL", "never_say": []},
-  {"use": "checkpoint", "never_say": []},
-  {"use": "REDO", "never_say": []},
-  {"use": "Log Sequence Number", "never_say": []},
-  {"use": "checkpoint_timeout", "never_say": []},
-  {"use": "max_wal_size", "never_say": []},
-  {"use": "synchronous_commit", "never_say": []},
-  {"use": "wal_writer_delay", "never_say": []}
+  {
+   "use": "write-ahead log",
+   "never_say": [
+    "redo log",
+    "transaction log file"
+   ]
+  },
+  {
+   "use": "WAL",
+   "never_say": []
+  },
+  {
+   "use": "checkpoint",
+   "never_say": []
+  },
+  {
+   "use": "REDO",
+   "never_say": []
+  },
+  {
+   "use": "Log Sequence Number",
+   "never_say": []
+  },
+  {
+   "use": "checkpoint_timeout",
+   "never_say": []
+  },
+  {
+   "use": "max_wal_size",
+   "never_say": []
+  },
+  {
+   "use": "synchronous_commit",
+   "never_say": []
+  },
+  {
+   "use": "wal_writer_delay",
+   "never_say": []
+  }
  ],
  "counts": {},
- "rehook": {"line": 5, "payoff_line": 6},
+ "rehook": {
+  "line": 6,
+  "payoff_line": 9
+ },
  "share": {
   "line": 10,
   "who": "a DBA or backend engineer tuning how long PostgreSQL takes to recover after a crash",
   "why": "shorter checkpoint intervals buy faster crash recovery at the price of more dirty-page flushing: a tuning rule worth saving"
  },
  "replay": {
-  "echo": "crash",
-  "twist": "On a second watch 'survives a crash without writing your table, and replays 1 log' reads as the lesson the video just proved: the WAL flush at COMMIT, the checkpoint, and the replay (REDO) of the log after a crash."
+  "echo": "table",
+  "twist": "The hook asks why a COMMIT flushes only 1 file and not your table. On a second watch the last line answers it as a lesson: only the WAL file is flushed at COMMIT, and the checkpoint plus the REDO replay are what keep your table safe."
  },
- "topic_terms": ["PostgreSQL", "WAL", "COMMIT", "checkpoint", "REDO", "pg_wal", "crash", "write-ahead", "Memory", "Disk", "synchronous_commit"],
+ "topic_terms": [
+  "COMMIT",
+  "Disk",
+  "Memory",
+  "PostgreSQL",
+  "REDO",
+  "WAL",
+  "checkpoint",
+  "crash",
+  "pg_wal",
+  "synchronous_commit",
+  "table",
+  "write-ahead",
+  "write-ahead log"
+ ],
  "length_reason": "About 90 s on purpose: one mechanism with four stages (WAL record, flush at COMMIT, checkpoint, REDO), each with a real default, setting, function or file name from the PostgreSQL 18 docs, plus the checkpoint trade-off and the synchronous_commit catch.",
- "illustrative_numbers": ["1", "2", "3", "8", "0.3", "0.9", "600ms", "600"],
+ "illustrative_numbers": [
+  "1",
+  "2",
+  "3",
+  "8",
+  "0.3",
+  "0.9",
+  "600ms",
+  "600"
+ ],
  "claims": [
   {
-   "say": "PostgreSQL survives a crash without writing your table at COMMIT, and replays 1 log instead.",
+   "say": "Why does a PostgreSQL COMMIT flush 1 file, not your table?",
    "source": "https://www.postgresql.org/docs/current/wal-intro.html",
-   "quote": "we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages can be redone from the WAL records."
+   "quote": "Using WAL results in a significantly reduced number of disk writes, because only the WAL file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction."
   },
   {
-   "say": "PostgreSQL uses a write-ahead log, WAL: changes to data files must be written only after those changes have been logged.",
+   "say": "The answer is the write-ahead log, WAL: changes to data files must be written only after those changes have been logged.",
    "source": "https://www.postgresql.org/docs/current/wal-intro.html",
    "quote": "WAL's central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged, that is, after WAL records describing the changes have been flushed to permanent storage."
   },
@@ -51,14 +107,14 @@
    "quote": "WAL files are stored in the directory pg_wal under the data directory, as a set of segment files, normally each 16 MB in size (but the size can be changed by altering the --wal-segsize initdb option). Segment files are given ever-increasing numbers as names, starting at 000000010000000000000001."
   },
   {
-   "say": "Only 1 file is flushed at COMMIT. Which one, the WAL or your data files?",
+   "say": "If your 1 changed table page is still only in memory, would a crash lose it? (answered by REDO)",
    "source": "https://www.postgresql.org/docs/current/wal-intro.html",
-   "quote": "Using WAL results in a significantly reduced number of disk writes, because only the WAL file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction."
+   "quote": "we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages can be redone from the WAL records."
   },
   {
-   "say": "At COMMIT, only the WAL file has to be flushed. Changed data pages can be redone from the WAL records after a crash: roll-forward recovery, also known as REDO.",
+   "say": "Second, the flush. At COMMIT, only the WAL file has to be flushed to disk, not every data file the transaction changed. That means significantly fewer disk writes.",
    "source": "https://www.postgresql.org/docs/current/wal-intro.html",
-   "quote": "any changes that have not been applied to the data pages can be redone from the WAL records. (This is roll-forward recovery, also known as REDO.)"
+   "quote": "Using WAL results in a significantly reduced number of disk writes, because only the WAL file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction."
   },
   {
    "say": "synchronous_commit is on by default (terminal line).",
@@ -96,9 +152,9 @@
    "quote": "The default is 1 GB."
   },
   {
-   "say": "After a crash, PostgreSQL reads the latest checkpoint record to find the redo record, and starts REDO from that point in the WAL.",
+   "say": "Fourth, REDO: no, the page is not lost. After a crash, PostgreSQL reads the latest checkpoint record to find the redo record, and redoes the changes from that point in the WAL.",
    "source": "https://www.postgresql.org/docs/current/wal-configuration.html",
-   "quote": "In the event of a crash, the crash recovery procedure looks at the latest checkpoint record to determine the point in the WAL (known as the redo record) from which it should start the REDO operation."
+   "quote": "In the event of a crash, the crash recovery procedure looks at the latest checkpoint record to determine the point in the WAL (known as the redo record) from which it should start the REDO operation. any changes that have not been applied to the data pages can be redone from the WAL records."
   },
   {
    "say": "Shorter checkpoint intervals mean faster crash recovery, but dirty data pages are flushed more often.",
@@ -121,9 +177,9 @@
    "quote": "The default value is 200 milliseconds (200ms)."
   },
   {
-   "say": "So when your COMMIT survives a crash, you know why: the WAL flush, the checkpoint and the replay.",
+   "say": "So a COMMIT flushes only the WAL file; the checkpoint and the REDO replay keep your table safe.",
    "source": "https://www.postgresql.org/docs/current/wal-intro.html",
-   "quote": "only the WAL file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction."
+   "quote": "only the WAL file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction. At checkpoint time, all dirty data pages are flushed to disk and a special checkpoint record is written to the WAL file."
   }
  ]
 }
