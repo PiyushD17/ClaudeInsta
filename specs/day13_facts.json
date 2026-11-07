@@ -1,0 +1,279 @@
+{
+ "terms": [
+  {
+   "use": "reverse proxy",
+   "never_say": [
+    "reverse-proxy"
+   ]
+  },
+  {
+   "use": "load balancer",
+   "never_say": []
+  },
+  {
+   "use": "API gateway",
+   "never_say": []
+  },
+  {
+   "use": "proxy_pass",
+   "never_say": []
+  },
+  {
+   "use": "round-robin",
+   "never_say": []
+  }
+ ],
+ "counts": {},
+ "rehook": {
+  "line": 4,
+  "payoff_line": 6
+ },
+ "share": {
+  "line": 11,
+  "who": "an engineer who mixes up their reverse proxy, load balancer and API gateway",
+  "why": "a three-question rule of thumb: which server is healthy, who is calling, which path goes where"
+ },
+ "replay": {
+  "echo": "proxy_pass",
+  "twist": "On a second watch the hook 'Your 1 proxy_pass can be a reverse proxy, but also a load balancer' reads as the lesson: proxy_pass at 1 server is a reverse proxy, at an upstream group of 3 it is a load balancer, and the gateway adds who is calling."
+ },
+ "topic_terms": [
+  "proxy_pass",
+  "reverse proxy",
+  "load balancer",
+  "API gateway",
+  "NGINX",
+  "servers",
+  "API key",
+  "upstream",
+  "alice"
+ ],
+ "length_reason": "About 105 s on purpose: a COMPARE deep dive where each of the 3 jobs needs its own real artefact (proxy_pass, upstream group with max_fails and fail_timeout defaults, ALB health check defaults and its only-unhealthy-targets behaviour, API Gateway authorization, auth_request and limit_req).",
+ "illustrative_numbers": [
+  "42",
+  "1",
+  "2",
+  "3",
+  "5",
+  "10",
+  "30",
+  "0"
+ ],
+ "claims": [
+  {
+   "say": "In NGINX a reverse proxy uses a location block with proxy_pass (example shape: location, proxy_pass to one server).",
+   "source": "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/",
+   "quote": "location /some/path/ {"
+  },
+  {
+   "say": "The docs example passes the request with proxy_pass inside a location block.",
+   "source": "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/",
+   "quote": "proxy_pass http://www.example.com/link/;"
+  },
+  {
+   "say": "proxy_pass passes all requests processed in that location to the proxied server.",
+   "source": "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/",
+   "quote": "This example configuration results in passing all requests processed in this location to the proxied server at the specified address."
+  },
+  {
+   "say": "Proxying distributes the load among several servers (reverse proxy and load balancer roles overlap).",
+   "source": "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/",
+   "quote": "Proxying is typically used to distribute the load among several servers"
+  },
+  {
+   "say": "proxy_pass can point to a named group of servers, so the same directive serves a load balancer.",
+   "source": "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/",
+   "quote": "The proxy_pass directive can also be used to pass requests to a named group of servers"
+  },
+  {
+   "say": "A reverse proxy can also do load balancing (roles overlap).",
+   "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling",
+   "quote": "Load balancing: distribute the load to several web servers,"
+  },
+  {
+   "say": "Example upstream group of 3 servers: upstream myapp1 { ... }",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "upstream myapp1 {"
+  },
+  {
+   "say": "Group member srv1.example.com.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "server srv1.example.com;"
+  },
+  {
+   "say": "Group member srv2.example.com.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "server srv2.example.com;"
+  },
+  {
+   "say": "Group member srv3.example.com.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "server srv3.example.com;"
+  },
+  {
+   "say": "proxy_pass points at the upstream group.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "proxy_pass http://myapp1;"
+  },
+  {
+   "say": "nginx applies HTTP load balancing to the server group.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "All requests are proxied to the server group myapp1, and nginx applies HTTP load balancing to distribute the requests."
+  },
+  {
+   "say": "With no method configured, it defaults to round-robin.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "When the load balancing method is not specifically configured, it defaults to round-robin."
+  },
+  {
+   "say": "A failing server is marked failed and nginx tries to avoid it for a while.",
+   "source": "https://nginx.org/en/docs/http/load_balancing.html",
+   "quote": "If the response from a particular server fails with an error, nginx will mark this server as failed, and will try to avoid selecting this server for subsequent inbound requests for a while."
+  },
+  {
+   "say": "max_fails defaults to 1.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "By default, the number of unsuccessful attempts is set to 1."
+  },
+  {
+   "say": "fail_timeout defaults to 10 seconds.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "By default, the parameter is set to 10 seconds."
+  },
+  {
+   "say": "fail_timeout is the period the server is considered unavailable.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "the period of time the server will be considered unavailable."
+  },
+  {
+   "say": "An AWS Application Load Balancer monitors target health and routes only to healthy targets.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html",
+   "quote": "It monitors the health of its registered targets, and routes traffic only to the healthy targets."
+  },
+  {
+   "say": "ALB health check interval defaults to 30 seconds (instance or ip targets).",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "The default is 30 seconds if the target type is `instance` or `ip`"
+  },
+  {
+   "say": "HealthCheckIntervalSeconds setting name.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "HealthCheckIntervalSeconds"
+  },
+  {
+   "say": "UnhealthyThresholdCount setting name.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "UnhealthyThresholdCount"
+  },
+  {
+   "say": "ALB unhealthy threshold count defaults to 2.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "The range is 2\u201310. The default is 2."
+  },
+  {
+   "say": "If a target group contains only unhealthy targets, the load balancer routes requests to all of them.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "If a target group contains only unhealthy registered targets, the load balancer routes requests to all those targets"
+  },
+  {
+   "say": "Amazon API Gateway tasks: traffic management, authorization and access control, monitoring, API version management.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html",
+   "quote": "These tasks include traffic management, authorization and access control, monitoring, and API version management."
+  },
+  {
+   "say": "auth_request implements client authorization based on a subrequest.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_auth_request_module.html",
+   "quote": "implements client authorization based on the result of a subrequest."
+  },
+  {
+   "say": "auth_request allows on 2xx.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_auth_request_module.html",
+   "quote": "If the subrequest returns a 2xx response code, the access is allowed."
+  },
+  {
+   "say": "auth_request denies on 401 or 403.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_auth_request_module.html",
+   "quote": "If it returns 401 or 403, the access is denied with the corresponding error code."
+  },
+  {
+   "say": "auth_request /auth; config line.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_auth_request_module.html",
+   "quote": "auth_request /auth;"
+  },
+  {
+   "say": "limit_req_zone with rate=1r/s config line (an NGINX example of rate limiting; not a claim about the Amazon API Gateway list).",
+   "source": "https://nginx.org/en/docs/http/ngx_http_limit_req_module.html",
+   "quote": "limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;"
+  },
+  {
+   "say": "limit_req with burst=5 config line.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_limit_req_module.html",
+   "quote": "limit_req zone=one burst=5;"
+  },
+  {
+   "say": "Rejected requests get status 503 by default.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_limit_req_module.html",
+   "quote": "Default: limit_req_status 503;"
+  },
+  {
+   "say": "limit_req_status sets the status code for rejected requests.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_limit_req_module.html",
+   "quote": "Sets the status code to return in response to rejected requests."
+  },
+  {
+   "say": "Decision rule: load balancer asks which server is healthy (monitors health of targets).",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html",
+   "quote": "It monitors the health of its registered targets, and routes traffic only to the healthy targets."
+  },
+  {
+   "say": "Decision rule: API gateway handles authorization and access control.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html",
+   "quote": "These tasks include traffic management, authorization and access control, monitoring, and API version management."
+  },
+  {
+   "say": "Decision rule: reverse proxy sends a path's requests to the proxied server.",
+   "source": "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/",
+   "quote": "This example configuration results in passing all requests processed in this location to the proxied server at the specified address."
+  },
+  {
+   "say": "With a single server in a group, max_fails and fail_timeout are ignored (so proxy_pass with 1 server cannot skip a failed one).",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "If there is only a single server in a group, max_fails, fail_timeout and slow_start parameters are ignored,"
+  },
+  {
+   "say": "A single server is never considered unavailable.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "and such a server will never be considered unavailable."
+  },
+  {
+   "say": "max_fails sets the number of unsuccessful attempts to communicate with the server.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "sets the number of unsuccessful attempts to communicate with the server"
+  },
+  {
+   "say": "The attempts are counted in the duration set by fail_timeout.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+   "quote": "that should happen in the duration set by the fail_timeout parameter"
+  },
+  {
+   "say": "ALB health checks run at an interval (approximate time between checks).",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "The approximate amount of time, in seconds, between health checks of an individual target."
+  },
+  {
+   "say": "UnhealthyThresholdCount: number of consecutive failed health checks before a target is unhealthy.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "The number of consecutive failed health checks required before considering a target unhealthy."
+  },
+  {
+   "say": "The load balancer routes requests to all unhealthy targets regardless of their health status.",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+   "quote": "the load balancer routes requests to all those targets, regardless of their health status."
+  },
+  {
+   "say": "API Gateway handles authorization and access control (what a caller may do).",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html",
+   "quote": "These tasks include traffic management, authorization and access control, monitoring, and API version management."
+  }
+ ]
+}
