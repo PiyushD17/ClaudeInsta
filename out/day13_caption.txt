@@ -1,0 +1,11 @@
+NGINX proxy_pass: reverse proxy, load balancer or API gateway? 🤔
+
+They sound alike, but each one answers a different question about the same request. With 1 server, proxy_pass is a reverse proxy. Point it at an upstream group of 3 and NGINX load balances. The API gateway adds who may call and what they may do.
+
+One catch worth knowing: an AWS Application Load Balancer with only unhealthy targets routes requests to all of them.
+
+Save this rule of thumb (roles overlap, so "usually"): load balancer = which server is healthy, API gateway = who is calling, reverse proxy = which path goes where. Send it to the teammate who mixes them up.
+
+Follow for one tech topic a day.
+
+#nginx #loadbalancer #apigateway #systemdesign #backend

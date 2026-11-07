@@ -236,7 +236,7 @@
    "quote": "This example configuration results in passing all requests processed in this location to the proxied server at the specified address."
   },
   {
-   "say": "With a single server in a group, max_fails and fail_timeout are ignored (so proxy_pass with 1 server cannot skip a failed one).",
+   "say": "Side note: with a single server in a group, max_fails and fail_timeout are ignored.",
    "source": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
    "quote": "If there is only a single server in a group, max_fails, fail_timeout and slow_start parameters are ignored,"
   },

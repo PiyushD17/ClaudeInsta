@@ -2,15 +2,15 @@ LINES = [
  "Your 1 proxy_pass can be a reverse proxy, but also a load balancer.",
  "Three jobs can sit in front of your servers: a reverse proxy, a load balancer and an API gateway. In our example, alice calls GET /orders/42 through NGINX, and each job asks that request a different question.",
  "The reverse proxy asks which server handles this path of the request. In NGINX, a location block with proxy_pass, as in the docs example, passes all requests processed in that location to the proxied server at the specified address.",
- "Your proxy_pass with 1 server can't skip a failed one. What do 3 servers add?",
+ "If srv1 fails, your 1-server proxy_pass has no other server to try. What do 3 servers add?",
  "Point proxy_pass at an upstream group with 3 servers, srv1, srv2 and srv3, and nginx applies HTTP load balancing. The default method is round-robin.",
  "What the group adds is skipping: when a response from a server fails, nginx marks it unavailable and tries to avoid it for a while. max_fails defaults to 1 and fail_timeout to 10 seconds.",
  "An AWS Application Load Balancer sends its own health checks: about every 30 seconds by default for instance and IP targets, and by default 2 consecutive failed checks mean unhealthy.",
  "The catch: if a target group contains only unhealthy targets, the load balancer routes requests to all of them, regardless of health.",
  "The API gateway asks who is calling and what they may do. Amazon API Gateway lists traffic management, authorization and access control among its tasks.",
- "NGINX has directives for such tasks too: auth_request allows alice on a 2xx subrequest and denies on 401 or 403, and limit_req_zone sets a 1r/s rate that limit_req enforces; rejected requests get 503 by default.",
+ "NGINX has directives for such tasks too: auth_request allows alice on a 2xx subrequest and denies on 401 or 403, and limit_req_zone sets a rate of 1r/s, and rejected requests get 503 by default.",
  "Save this rule of thumb, since roles overlap: usually, the load balancer answers which server is healthy, the gateway who is calling, and the reverse proxy which path goes where.",
- "So proxy_pass points at 1 server as a reverse proxy, or at an upstream group of 3 as a load balancer. The gateway adds who is calling. Follow for one tech topic a day.",
+ "So proxy_pass at 1 server is a plain reverse proxy; at an upstream group of 3 it also load balances. The gateway adds who is calling. Follow for one tech topic a day.",
 ]
 
 def wi(line, token, k=1):
@@ -27,12 +27,13 @@ SRV_Y = {1: DY + 100, 2: DY + 200, 3: DY + 300}          # server boxes (centres
 ALICE = (230, DY + 250)
 NG_IN = (520, DY + 250)
 GW = (505, DY + 350)
+BACK = [GW, (505, DY + 418), (190, DY + 418)]   # return path under the panels, crosses no text
 
 def route(i):
     return [ALICE, NG_IN, (820, SRV_Y[i] + 40)]
 
 def pkt(pid, t, i=1, text="GET", color="mint", out=None, dur=1.5, path=None):
-    o = {"kind": "packet", "id": pid, "t": t, "path": path or route(i), "text": text, "color": color, "dur": dur, "w": 96, "h": 44, "hold": False}
+    o = {"kind": "packet", "id": pid, "t": t, "path": path or route(i), "text": text, "color": color, "dur": dur, "w": 96, "h": 36, "hold": False}
     if out is not None: o["out"] = out
     return o
 
@@ -112,10 +113,10 @@ SPEC = {
         {"type": "stage", "objects": [
             {"kind": "question", "id": "q4", "t": wi(4, "what"), "x": 540, "y": 466, "parts": [("Failed server. ", "white"), ("What do 3 servers add?", "amber")], "size": 30, "maxw": 960},
             {"kind": "pill", "id": "a4", "t": wi(4, "1"), "x": 540, "y": 1090, "text": "proxy_pass: 1 SERVER", "color": "cyan", "size": 40, "maxw": 900},
-            {"kind": "pill", "id": "b4", "t": wi(4, "failed"), "x": 540, "y": 1210, "text": "srv1 FAILED", "color": "pink", "size": 44, "maxw": 700}],
+            {"kind": "pill", "id": "b4", "t": wi(4, "fails"), "x": 540, "y": 1210, "text": "srv1 FAILED", "color": "pink", "size": 44, "maxw": 700}],
          "clear": ["t3", "r3", "p3", "p3a"], "focus": ["nginx", "servers", "s1", "steps"],
          "events": [{"id": "s1", "t": 0.0, "dur": 0.0, "set": {"hl": False}},
-                    {"id": "s1", "t": wi(4, "failed"), "dur": 0.0, "set": {"status": "cross", "color": "pink"}}]},
+                    {"id": "s1", "t": wi(4, "fails"), "dur": 0.0, "set": {"status": "cross", "color": "pink"}}]},
         # 5 load balancer: upstream group of 3
         {"type": "stage", "objects": [
             TITLE(5, [("Load balancer: ", "mint"), ("upstream group", "white")]),
@@ -195,13 +196,13 @@ SPEC = {
         {"type": "stage", "objects": [
             TITLE(10, [("NGINX: ", "amber"), ("auth_request, limit_req", "white")]),
             pkt("p10a", wi(10, "allows"), 1, "GET", "mint", path=[ALICE, GW, (820, SRV_Y[1] + 40)]),
-            pkt("p10b", wi(10, "denies"), 1, "401", "pink", path=[GW, ALICE]),
-            pkt("p10c", wi(10, "rejected"), 1, "503", "pink", path=[GW, ALICE]),
+            pkt("p10b", wi(10, "denies"), 1, "401", "pink", path=BACK),
+            pkt("p10c", wi(10, "rejected"), 1, "503", "pink", path=BACK),
             term("r10", "NGINX docs: access and rate limits", [
                 {"text": "auth_request /auth;", "color": "white", "hl": True, "hlcolor": "purple", "at": wi(10, "auth_request")},
                 {"text": "-- 2xx: allowed, 401 or 403: denied", "color": "gray", "at": wi(10, "allows")},
                 {"text": "limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;", "color": "white", "at": wi(10, "limit_req_zone")},
-                {"text": "limit_req zone=one burst=5;", "color": "white", "at": wi(10, "limit_req", 2)},
+                {"text": "limit_req zone=one burst=5;", "color": "white", "at": wi(10, "1r/s")},
                 {"text": "-- rejected requests: status 503 (default)", "color": "pink", "at": wi(10, "rejected")}], size=27, cps=50)],
          "clear": ["t9", "r9"], "focus": [],
          "events": [{"id": "gw", "t": 0.0, "dur": 0.0, "set": {"hl": True}}, {"id": "steps", "t": -0.2, "dur": 0.0, "set": {"active": 2}},

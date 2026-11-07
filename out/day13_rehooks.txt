@@ -1,0 +1,11 @@
+Your proxy_pass can quietly become a load balancer. What does a server group add?
+But swap 1 address for 3 servers and your proxy_pass changes jobs. What does it gain?
+Your proxy_pass with 1 server can't avoid a failed one. What do 3 servers fix?
+But 1 proxy_pass address has no backup. What do 3 servers add?
+Your reverse proxy never skips a dead server, until it has 3. What changes?
+Only 3 servers, not new software, turn your proxy_pass into a balancer. What do they add?
+But your load balancer still has 1 job the proxy never had. What is it?
+Don't trust your proxy_pass with 1 server: what does a group of 3 add?
+
+FINAL REHOOK (line 4; first sentence scored PASS 75.0, weakest STAKES 70; sits at about 26% of the video; answered by line 6 at about 38-47%):
+If srv1 fails, your 1-server proxy_pass has no other server to try. What do 3 servers add?

@@ -1,0 +1,11 @@
+Only 1 directive, proxy_pass, runs your proxy and load balancer.
+Your NGINX proxy and load balancer use the same proxy_pass line.
+Your load balancer is not a new box: NGINX uses proxy_pass for both.
+Only 3 questions separate your proxy, balancer and gateway.
+Your NGINX proxy_pass is both a proxy and a balancer. Why?
+Not 3 boxes: 1 NGINX proxy_pass can proxy and balance your traffic.
+Never confuse these 3: your proxy, balancer and gateway ask 3 questions.
+Your proxy and load balancer share 1 NGINX directive, proxy_pass.
+
+FINAL HOOK (scored STRONG 72.1 with skills/ig-reel/hookscore.py, true and answered by lines 2-12):
+Your 1 proxy_pass can be a reverse proxy, but also a load balancer.
