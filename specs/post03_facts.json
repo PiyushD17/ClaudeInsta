@@ -1,0 +1,257 @@
+{
+ "topic_terms": [
+  "cache",
+  "database",
+  "stampede",
+  "expire",
+  "expiry",
+  "nginx"
+ ],
+ "terms": [
+  {
+   "use": "cache stampede",
+   "never_say": [
+    "cache storm"
+   ]
+  },
+  {
+   "use": "thundering herd",
+   "never_say": []
+  },
+  {
+   "use": "time to live (TTL)",
+   "never_say": []
+  },
+  {
+   "use": "stale",
+   "never_say": [
+    "old cache bug"
+   ]
+  }
+ ],
+ "illustrative_numbers": [
+  "1"
+ ],
+ "derived_numbers": {},
+ "claims": [
+  {
+   "say": "Teams add a cache after observing a dependency's latency or efficiency at a request rate.",
+   "source": "https://builder.aws.com/content/3K9TeXp6strMiJ4vhakpRD7BQWO/caching-challenges-and-strategies",
+   "quote": "Many times this begins with an observation about a dependency's latency or efficiency at a given request rate.",
+   "slides": [
+    2
+   ]
+  },
+  {
+   "say": "The most common expiry rule gives each object a TTL.",
+   "source": "https://builder.aws.com/content/3K9TeXp6strMiJ4vhakpRD7BQWO/caching-challenges-and-strategies",
+   "quote": "The most common policy uses an absolute time-based expiration (that is, it associates a time to live (TTL)",
+   "slides": [
+    2
+   ]
+  },
+  {
+   "say": "On a cache miss a process recomputes the value.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "To prevent multiple simultaneous recomputations of the same value, upon a cache miss a process will attempt to acquire the lock for that cache key and recompute it only if it acquires it.",
+   "slides": [
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "say": "Under high request rate the database or other shared resource overloads.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "When the request rate is high, the database (or any other shared resource) will suffer from an overload",
+   "slides": [
+    1,
+    2,
+    3,
+    7
+   ]
+  },
+  {
+   "say": "A cache stampede is a type of cascading failure in massively parallel systems.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "A cache stampede is a type of cascading failure that can occur when massively parallel computing systems",
+   "slides": [
+    3,
+    7
+   ]
+  },
+  {
+   "say": "AWS calls it the thundering herd: many clients need the same uncached resource at about the same time.",
+   "source": "https://builder.aws.com/content/3K9TeXp6strMiJ4vhakpRD7BQWO/caching-challenges-and-strategies",
+   "quote": "the “thundering herd” situation, in which many clients make requests that need the same uncached downstream resource",
+   "slides": [
+    3
+   ]
+  },
+  {
+   "say": "Stampede reduces the hit rate to zero and keeps the system in congestion collapse.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "Thus, cache stampede reduces the cache hit rate to zero and keeps the system continuously in congestion collapse",
+   "slides": [
+    3
+   ]
+  },
+  {
+   "say": "A lock: only the process that gets it recomputes; locking can prevent stampedes.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "If implemented properly, locking can prevent stampedes altogether, but requires an extra write",
+   "slides": [
+    4,
+    7
+   ]
+  },
+  {
+   "say": "nginx cache lock: only one request at a time may populate a new cache element; others wait.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the proxy_cache_key directive by passing a request to a proxied server.",
+   "slides": [
+    4,
+    7
+   ]
+  },
+  {
+   "say": "The nginx cache lock is off by default.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Default: proxy_cache_lock off;",
+   "slides": [
+    4
+   ]
+  },
+  {
+   "say": "Default lock wait is 5 seconds; then the request goes to the proxied server and the response is not cached.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Default: proxy_cache_lock_timeout 5s; Sets a timeout for proxy_cache_lock. When the time expires, the request will be passed to the proxied server, however, the response will not be cached.",
+   "slides": [
+    4,
+    7
+   ]
+  },
+  {
+   "say": "Others wait for a response to appear in the cache, up to the timeout.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the proxy_cache_lock_timeout directive.",
+   "slides": [
+    4
+   ]
+  },
+  {
+   "say": "A stale item can be kept and used while the new value is recomputed.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "Keep a stale item in the cache to be used while the new value is recomputed",
+   "slides": [
+    5,
+    7
+   ]
+  },
+  {
+   "say": "nginx can use a stale cached response while it is updated, minimizing accesses to the proxied server.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Additionally, the updating parameter permits using a stale cached response if it is currently being updated. This allows minimizing the number of accesses to proxied servers when updating cached data.",
+   "slides": [
+    5,
+    7
+   ]
+  },
+  {
+   "say": "nginx can start a background subrequest to update an expired item while a stale response is returned.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Allows starting a background subrequest to update an expired cache item, while a stale cached response is returned to the client.",
+   "slides": [
+    5
+   ]
+  },
+  {
+   "say": "AWS: weigh stale data versus errors.",
+   "source": "https://builder.aws.com/content/3K9TeXp6strMiJ4vhakpRD7BQWO/caching-challenges-and-strategies",
+   "quote": "evaluating when it is better for clients to see stale data versus errors.",
+   "slides": [
+    5
+   ]
+  },
+  {
+   "say": "Probabilistic early expiration: each process may recompute before expiration by an independent probabilistic decision.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "each process may recompute the cache value before its expiration by making an independent probabilistic decision",
+   "slides": [
+    6,
+    7
+   ]
+  },
+  {
+   "say": "delta is the time to recompute the value and scales the probability.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "The variable delta represents the time to recompute the value and is used to scale the probability",
+   "slides": [
+    6
+   ]
+  },
+  {
+   "say": "The authors show beta=1 works well in practice.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "the authors show that setting beta=1 works well in practice.",
+   "slides": [
+    6
+   ]
+  },
+  {
+   "say": "Early expiration takes more cache memory because delta is bundled with the item.",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "One drawback is that it takes more memory in cache as we need to bundle the value delta with the cache item",
+   "slides": [
+    6,
+    7
+   ]
+  },
+  {
+   "say": "The formula includes delta and the expiry time, so a longer recompute time makes early recompute more likely (derived from the formula).",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "if (!value || (time() - delta * beta * log(rand(0,1))) ≥ expiry)",
+   "slides": [
+    6
+   ]
+  },
+  {
+   "say": "Locking requires an extra write (cost shown on recap).",
+   "source": "https://en.wikipedia.org/wiki/Cache_stampede",
+   "quote": "If implemented properly, locking can prevent stampedes altogether, but requires an extra write",
+   "slides": [
+    7
+   ]
+  },
+  {
+   "say": "AWS: choose when clients see stale data versus errors (cost of serving stale shown on recap).",
+   "source": "https://builder.aws.com/content/3K9TeXp6strMiJ4vhakpRD7BQWO/caching-challenges-and-strategies",
+   "quote": "evaluating when it is better for clients to see stale data versus errors.",
+   "slides": [
+    7
+   ]
+  },
+  {
+   "say": "The lock default is off (share line on recap).",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Default: proxy_cache_lock off;",
+   "slides": [
+    7
+   ]
+  },
+  {
+   "say": "The stale-while-updating nginx parameter and background update are separate settings, default off.",
+   "source": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+   "quote": "Default: proxy_cache_use_stale off; Default: proxy_cache_background_update off;",
+   "slides": [
+    5
+   ]
+  }
+ ],
+ "share": {
+  "slide": 4,
+  "who": "the engineer who configures the cache in front of a busy backend or database",
+  "why": "nginx's cache lock is off by default and its wait gives up after 5 seconds, so a cache can still send many identical requests to the backend"
+ },
+ "saves": "the recap slide lists the defences (lock, stale copy, early refresh) with the cost of each"
+}
